@@ -11,19 +11,19 @@ struct ContentView: View {
     var body: some View {
         TabView {
             
-            Tab("photos", systemImage:"photo"){
+            Tab(tabview_words.photos, systemImage:tabview_images.photos){
                 
             }
-            Tab("emotions", systemImage:"person.fill"){
+            Tab(tabview_words.emotion, systemImage:tabview_images.emotion){
                 
             }
-            Tab("camera", systemImage:"camera"){
+            Tab(tabview_words.camera, systemImage:tabview_images.camera){
                 
             }
-            Tab("memories", systemImage: "memories"){
+            Tab(tabview_words.memory, systemImage: tabview_images.memory){
             }
-            Tab("home", systemImage: "house"){
-                //Text("home")
+            Tab(tabview_words.home, systemImage: tabview_images.home){
+                
             }
         }
     }
