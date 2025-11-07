@@ -11,20 +11,48 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView {
-                Tab(tabview_words.photos, systemImage: tabview_images.photos) {
-                    
+                Tab {
+                } label: {
+                    VStack {
+                        Image(systemName: tabview_images.photos)
+                        Text(tabview_words.photos)
+                            .font(.system(size: 14, weight: .bold))  // 修改字体
+                    }
                 }
-                Tab(tabview_words.emotion, systemImage: tabview_images.emotion) {
-                    
+
+                Tab {
+                } label: {
+                    VStack {
+                        Image(systemName: tabview_images.emotion)
+                        Text(tabview_words.emotion)
+                            .font(.system(size: 14))
+                    }
                 }
-                Tab("", systemImage: "") {
-                    
+
+                Tab {
+                } label: {
+                    VStack {
+                        Image(systemName: "")   // 空占位
+                        Text("")                // 空占位
+                    }
                 }
-                Tab(tabview_words.memory, systemImage: tabview_images.memory) {
-                    
+
+                Tab {
+                } label: {
+                    VStack {
+                        Image(systemName: tabview_images.memory)
+                        Text(tabview_words.memory)
+                            .font(.system(size: 14))
+                    }
                 }
-                Tab(tabview_words.home, systemImage: tabview_images.home) {
-                    
+
+                Tab {
+                } label: {
+                    VStack {
+                        Image(systemName: tabview_images.home)
+                        Text(tabview_words.home)
+                            .font(.system(size: 14))
+                    }
                 }
             }
             VStack {
