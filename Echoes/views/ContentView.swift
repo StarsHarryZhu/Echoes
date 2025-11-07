@@ -35,7 +35,6 @@ struct ContentView: View {
                     size: 70,
                     foregroundColor: .black,
                 ) {
-                    print("按钮被点击！")
                     Task {
                         let camera = camera_control()
                         _ = await camera.capture()
