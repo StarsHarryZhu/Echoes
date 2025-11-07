@@ -30,19 +30,18 @@ struct ContentView: View {
 
             VStack {
                 Spacer()
-
-                Button(action: {
+                button(
+                    image: camera_button.image,
+                    size: 70,
+                    foregroundColor: .black,
+                ) {
+                    print("按钮被点击！")
                     Task {
                         let camera = camera_control()
-                        let result = await camera.capture()
+                        _ = await camera.capture()
                     }
-                }) {
-                    Image(systemName: camera_button.image)
-}
-                .buttonStyle(button_style(size: 32,
-                                          background_color: .black,
-                                          foreground_color: .white))
-                .padding(.bottom, 25)
+                }
+                .padding(.bottom, 25) // ✅ 让它正好贴着 tab 栏上方
             }
             .ignoresSafeArea(edges: .bottom)
         }
