@@ -106,7 +106,21 @@ struct EmotionsView: View {
                     .padding(.top, 4)
                 }
             }
+            // 保持系统大标题靠左
             .navigationTitle("Emotions")
+            .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                let appearance = UINavigationBarAppearance()
+                appearance.configureWithDefaultBackground()
+                appearance.largeTitleTextAttributes = [
+                    .font: UIFont(name: "SmileySans-Oblique", size: 34)!,
+                    .foregroundColor: UIColor.label
+                ]
+                UINavigationBar.appearance().standardAppearance = appearance
+                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            }
+
+
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
