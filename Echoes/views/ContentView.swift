@@ -49,7 +49,7 @@ struct ContentView: View {
                         
                     }
                 }) {
-                    Image(systemName: "camera.fill")
+                    Image(systemName: camera_button.image)
                 }
                 .buttonStyle(button_style(size: 32))
                 .padding(.bottom, 25)

@@ -6,13 +6,17 @@
 //
 
 import SwiftUI
+import UIKit
+
 
 struct ImageView: View {
+    var image: UIImage
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Image(uiImage: image)
     }
 }
 
 #Preview {
-    ImageView()
+    let image = UIImage(systemName: "photo")!
+    ImageView(image: image)
 }
