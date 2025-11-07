@@ -78,15 +78,6 @@ struct ContentView: View {
             }
             .ignoresSafeArea(edges: .bottom)
         }
-        // 👇 在这里打印系统所有字体，确认自定义字体是否加载成功
-        .onAppear {
-            for family in UIFont.familyNames.sorted() {
-                print("Family: \(family)")
-                for name in UIFont.fontNames(forFamilyName: family) {
-                    print("  Font: \(name)")
-                }
-            }
-        }
     }
 }
 
