@@ -21,6 +21,7 @@ struct ContentView: View {
                 
             }
             Tab(tabview_words.memory, systemImage: tabview_images.memory){
+                
             }
             Tab(tabview_words.home, systemImage: tabview_images.home){
                 
