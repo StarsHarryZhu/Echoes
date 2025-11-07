@@ -70,7 +70,7 @@ struct ContentView: View {
                     }
                 }) {
                     Image(systemName: camera_button.image)
-                }
+}
                 .buttonStyle(button_style(size: 32,
                                           background_color: .black,
                                           foreground_color: .white))
