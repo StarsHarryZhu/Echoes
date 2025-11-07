@@ -11,7 +11,7 @@ import SwiftUI
 struct button_style: ButtonStyle {
     var size: CGFloat = 28
     var background_color = Color.blue
-    var foreground_color: Color = .white
+    var foreground_color = Color.white
     
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
