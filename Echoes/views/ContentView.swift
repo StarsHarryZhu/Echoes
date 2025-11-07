@@ -9,24 +9,54 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        TabView {
-            
-            Tab(tabview_words.photos, systemImage:tabview_images.photos){
-                
+        ZStack {
+            TabView {
+                Tab(tabview_words.photos, systemImage: tabview_images.photos) {
+                    
+                }
+                Tab(tabview_words.emotion, systemImage: tabview_images.emotion) {
+                    
+                }
+                Tab("", systemImage: "") {
+                    
+                }
+                Tab(tabview_words.memory, systemImage: tabview_images.memory) {
+                    
+                }
+                Tab(tabview_words.home, systemImage: tabview_images.home) {
+                    
+                }
             }
-            Tab(tabview_words.emotion, systemImage:tabview_images.emotion){
-                
+            VStack {
+                Spacer()
+
+                Button(action: {
+                    Task {
+                        let camera = camera_control()
+                        let result = await camera.capture()
+                        
+//                        switch result{
+//                            case .success(let image):{
+//                                
+//                            }
+//                            case .cancel:{
+//                                
+//                            }
+//                            case .exception:{
+//
+//                            }
+//                        }
+                        
+                    }
+                }) {
+                    Image(systemName: "camera.fill")
+                }
+                .buttonStyle(button_style(size: 32))
+                .padding(.bottom, 25)
             }
-            Tab(tabview_words.camera, systemImage:tabview_images.camera){
-            
-            }
-            Tab(tabview_words.memory, systemImage: tabview_images.memory){
-                
-            }
-            Tab(tabview_words.home, systemImage: tabview_images.home){
-                
-            }
+            .ignoresSafeArea(edges: .bottom)
         }
+
     }
 }
 
