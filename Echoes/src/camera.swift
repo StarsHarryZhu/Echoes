@@ -8,6 +8,12 @@
 import Foundation
 import UIKit
 
+enum camera_return{
+    case success(UIImage?)
+    case cancel
+    case exception(String)
+}
+
 class camera_control: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     private var continuation: CheckedContinuation<camera_return, Never>?
     
