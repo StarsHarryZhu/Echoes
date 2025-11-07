@@ -6,3 +6,19 @@
 //
 
 import Foundation
+
+struct tabview_words{
+    static let home = "Home"
+    static let camera = "Camera"
+    static let emotion = "Emotions"
+    static let memory = "Memories"
+    static let photos = "Photos"
+}
+
+struct tabview_images{
+    static let home = "house"
+    static let camera = "camera"
+    static let emotion = "person.fill"
+    static let memory = "memories"
+    static let photos = "photo"
+}
