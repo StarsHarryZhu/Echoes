@@ -12,6 +12,7 @@ struct ContentView: View {
         ZStack {
             TabView {
                 Tab {
+                    PhotosView()
                 } label: {
                     VStack {
                         Image(systemName: tabview_images.photos)
@@ -21,6 +22,7 @@ struct ContentView: View {
                 }
 
                 Tab {
+                    EmotionsView()
                 } label: {
                     VStack {
                         Image(systemName: tabview_images.emotion)
@@ -38,6 +40,7 @@ struct ContentView: View {
                 }
 
                 Tab {
+                    MemoriesView()
                 } label: {
                     VStack {
                         Image(systemName: tabview_images.memory)
@@ -47,6 +50,7 @@ struct ContentView: View {
                 }
 
                 Tab {
+                    HomeView()
                 } label: {
                     VStack {
                         Image(systemName: tabview_images.home)
