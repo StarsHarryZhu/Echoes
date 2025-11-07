@@ -9,7 +9,7 @@
     import SwiftUI
     import UIKit
 
-    struct EmotionsView: View {
+    struct Cameraview: View {
         
         @State private var showCamera = false
         @State private var photos: [UIImage] = []
@@ -100,5 +100,5 @@
         }
     }
 #Preview {
-    EmotionsView()
+    Cameraview()
 }
