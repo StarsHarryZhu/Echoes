@@ -18,7 +18,7 @@ struct ContentView: View {
                 
             }
             Tab(tabview_words.camera, systemImage:tabview_images.camera){
-                
+            
             }
             Tab(tabview_words.memory, systemImage: tabview_images.memory){
                 

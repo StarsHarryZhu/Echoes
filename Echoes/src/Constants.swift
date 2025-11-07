@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 struct tabview_words{
     static let home = "Home"
@@ -21,4 +22,10 @@ struct tabview_images{
     static let emotion = "person.fill"
     static let memory = "memories"
     static let photos = "photo"
+}
+
+enum camera_return{
+    case success(UIImage?)
+    case cancel
+    case exception(String)
 }

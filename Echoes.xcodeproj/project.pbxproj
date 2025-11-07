@@ -10,9 +10,22 @@
 		E23BAE292EBDC92E008CDA1C /* Echoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Echoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E23BAE4A2EBE401D008CDA1C /* Exceptions for "Echoes" folder in "Echoes" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E23BAE282EBDC92E008CDA1C /* Echoes */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E23BAE2B2EBDC92E008CDA1C /* Echoes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E23BAE4A2EBE401D008CDA1C /* Exceptions for "Echoes" folder in "Echoes" target */,
+			);
 			path = Echoes;
 			sourceTree = "<group>";
 		};
@@ -253,6 +266,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Echoes/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "requires camera";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "requires photo library";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +300,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Echoes/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "requires camera";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "requires photo library";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
