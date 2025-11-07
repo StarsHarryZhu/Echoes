@@ -20,7 +20,7 @@ struct ContentView: View {
             Tab("camera", systemImage:"camera"){
                 
             }
-            Tab("my memories", systemImage: "memories"){
+            Tab("memories", systemImage: "memories"){
             }
             Tab("home", systemImage: "house"){
                 //Text("home")
