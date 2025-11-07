@@ -17,9 +17,13 @@ struct ContentView: View {
             Tab("photos", systemImage:"photo"){
                 
             }
+            Tab("emotions", systemImage:"person.fill"){
+            }
+            Tab("my memories", systemImage: "memories"){
+                }
+            }
         }
     }
-}
 
 #Preview {
     ContentView()
