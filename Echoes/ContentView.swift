@@ -9,8 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        TabView
-        {
+        TabView {
             
             Tab("photos", systemImage:"photo"){
                 
@@ -23,9 +22,9 @@ struct ContentView: View {
             Tab("home", systemImage: "house"){
                 //Text("home")
             }
-            }
         }
     }
+}
 
 
 #Preview {
