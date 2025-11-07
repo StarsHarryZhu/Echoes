@@ -16,7 +16,7 @@ struct ContentView: View {
                     VStack {
                         Image(systemName: tabview_images.photos)
                         Text(tabview_words.photos)
-                            .font(.system(size: 14, weight: .bold))  // 修改字体
+                            .font(.system(size: 14))// 修改字体
                     }
                 }
 
@@ -25,7 +25,7 @@ struct ContentView: View {
                     VStack {
                         Image(systemName: tabview_images.emotion)
                         Text(tabview_words.emotion)
-                            .font(.system(size: 14))
+                            .font(.system(size: 14)) // 改字体
                     }
                 }
 
