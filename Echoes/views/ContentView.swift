@@ -11,52 +11,20 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView {
-                Tab {
+                Tab(tabview_words.photos, systemImage: tabview_images.photos) {
                     PhotosView()
-                } label: {
-                    VStack {
-                        Image(systemName: tabview_images.photos)
-                        Text(tabview_words.photos)
-                            .font(.system(size: 14))
-                    }
                 }
-
-                Tab {
+                Tab(tabview_words.emotion, systemImage: tabview_images.emotion) {
                     EmotionsView()
-                } label: {
-                    VStack {
-                        Image(systemName: tabview_images.emotion)
-                        Text(tabview_words.emotion)
-                            .font(.system(size: 14))
-                    }
                 }
-
-                Tab {
-                } label: {
-                    VStack {
-                        Image(systemName: "")
-                        Text("")
-                    }
+                Tab("", systemImage: "") {
+                    
                 }
-
-                Tab {
+                Tab(tabview_words.memory, systemImage: tabview_images.memory) {
                     MemoriesView()
-                } label: {
-                    VStack {
-                        Image(systemName: tabview_images.memory)
-                        Text(tabview_words.memory)
-                            .font(.system(size: 14))
-                    }
                 }
-
-                Tab {
+                Tab(tabview_words.home, systemImage: tabview_images.home) {
                     HomeView()
-                } label: {
-                    VStack {
-                        Image(systemName: tabview_images.home)
-                        Text(tabview_words.home)
-                            .font(.system(size: 14))
-                    }
                 }
             }
 

@@ -25,3 +25,17 @@ struct button_style: ButtonStyle {
 }
 
 
+struct text_style: ViewModifier {
+    var size: CGFloat = 28
+    var weight: Font.Weight = .bold
+    
+    func body(content: Content) -> some View {
+        if UIFont(name: text_info.font, size: size) != nil {
+            content
+                .font(.custom(text_info.font, size: size).weight(weight))
+        } else {
+            content
+                .font(.system(size: size, weight: weight))
+        }
+    }
+}

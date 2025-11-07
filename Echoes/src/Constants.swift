@@ -25,3 +25,7 @@ struct tabview_images{
 struct camera_button{
     static let image = "camera.fill"
 }
+
+struct text_info{
+    static let font = "SmileySans-Oblique"
+}

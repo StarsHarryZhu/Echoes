@@ -10,6 +10,9 @@ import SwiftUI
 struct EmotionsView: View {
     var body: some View {
         Text("EmotionsView")
+            .modifier(text_style(
+                size: 30,
+            ))
     }
 }
 

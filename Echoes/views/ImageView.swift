@@ -13,6 +13,9 @@ struct ImageView: View {
     var image: UIImage
     var body: some View {
         Image(uiImage: image)
+            .modifier(text_style(
+                size: 30,
+            ))
     }
 }
 

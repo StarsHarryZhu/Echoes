@@ -14,11 +14,11 @@ struct EchoesApp: App {
 
         // 选中/未选中标题字体与颜色（UIKit 写法）
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .font: UIFont(name: "SmileySans-Oblique", size: 13) ?? UIFont.systemFont(ofSize: 15),
+            .font: UIFont(name: text_info.font, size: 13) ?? UIFont.systemFont(ofSize: 13),
             .foregroundColor: UIColor.systemBlue
         ]
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .font: UIFont(name: "SmileySans-Oblique", size: 13) ?? UIFont.systemFont(ofSize: 15),
+            .font: UIFont(name: text_info.font, size: 13) ?? UIFont.systemFont(ofSize: 13),
             .foregroundColor: UIColor.secondaryLabel
         ]
 

@@ -10,6 +10,9 @@ import SwiftUI
 struct PhotosView: View {
     var body: some View {
         Text("PhotosView")
+            .modifier(text_style(
+                size: 30,
+            ))
     }
 }
 

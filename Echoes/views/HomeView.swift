@@ -10,6 +10,9 @@ import SwiftUI
 struct HomeView: View {
     var body: some View {
         Text("HomeView")
+            .modifier(text_style(
+                size: 30,
+            ))
     }
 }
 

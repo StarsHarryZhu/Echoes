@@ -10,6 +10,9 @@ import SwiftUI
 struct MemoriesView: View {
     var body: some View {
         Text("MemoriesView")
+            .modifier(text_style(
+                size: 30,
+            ))
     }
 }
 
