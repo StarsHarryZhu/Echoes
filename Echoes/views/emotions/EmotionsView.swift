@@ -1,3 +1,10 @@
+//
+//  EmotionsView.swift
+//  Echoes
+//
+//  Created by Harry Zhu on 2025/11/7.
+//
+
 import SwiftUI
 import Combine
 
@@ -7,7 +14,6 @@ enum Emotion: String, CaseIterable, Identifiable, Hashable {
          surprise = "Surprise", fear = "Fear", love = "Love", neutral = "Neutral"
     var id: String { rawValue }
 
-    // 美观用：统一的图标与主色
     var icon: String {
         switch self {
         case .joy: return "sun.max.fill"
@@ -20,6 +26,7 @@ enum Emotion: String, CaseIterable, Identifiable, Hashable {
         case .neutral: return "circle.fill"
         }
     }
+
     var tint: Color {
         switch self {
         case .joy: return .yellow
@@ -38,7 +45,7 @@ struct EmotionMemory: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let date: Date
-    let cover: String?          // asset name; nil -> placeholder
+    let cover: String?
     let emotion: Emotion
 }
 
@@ -60,16 +67,12 @@ struct EmotionsView: View {
 
     var body: some View {
         NavigationStack {
-            // Home: grid of emotions (one card = one emotion)
             ScrollView {
                 LazyVGrid(columns: cols, spacing: 12) {
                     ForEach(Emotion.allCases) { emo in
                         let count = vm.items(for: emo).count
                         NavigationLink(value: emo) {
-                            EmotionGridItem(
-                                emotion: emo,
-                                count: count
-                            )
+                            EmotionGridItem(emotion: emo, count: count)   // 仅数字徽章
                         }
                     }
                 }
@@ -87,14 +90,13 @@ struct EmotionsView: View {
     }
 }
 
-// 彩色情绪卡片（更好看）
+// MARK: - Emotion Card (badge = number only)
 private struct EmotionGridItem: View {
     let emotion: Emotion
     let count: Int
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // 渐变背景 + 阴影 + 细描边
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
                     LinearGradient(
@@ -109,18 +111,16 @@ private struct EmotionGridItem: View {
                 )
                 .shadow(radius: 6, y: 3)
 
-            // 右上角数量徽章
-            HStack(spacing: 4) {
-                Image(systemName: "photo.on.rectangle")
-                Text("\(count)")
-            }
-            .font(.caption).bold()
-            .padding(.horizontal, 8).padding(.vertical, 6)
-            .background(.ultraThinMaterial, in: Capsule())
-            .padding(10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            // 右上角仅数字徽章
+            Text("\(count)")
+                .font(.caption).bold()
+                .padding(.horizontal, 8).padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .foregroundColor(.white)
 
-            // 左下角图标 + 名字
+            // 图标 + 文本
             HStack(spacing: 10) {
                 Image(systemName: emotion.icon)
                     .font(.system(size: 28, weight: .semibold))
@@ -132,11 +132,10 @@ private struct EmotionGridItem: View {
             }
             .padding(12)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
-// 某情绪下的相册列表（带彩色 header）
+// MARK: - Emotion Album Grid
 private struct EmotionListView: View {
     let emotion: Emotion
     let items: [EmotionMemory]
@@ -144,12 +143,10 @@ private struct EmotionListView: View {
 
     var body: some View {
         ScrollView {
-            // 彩色标题条
             HStack {
                 Image(systemName: emotion.icon)
                 Text(emotion.rawValue).bold()
                 Spacer()
-                Text("\(items.count) items").font(.subheadline).opacity(0.9)
             }
             .foregroundStyle(.white)
             .padding()
@@ -188,7 +185,7 @@ private struct EmotionListView: View {
     }
 }
 
-// 详情页卡片
+// MARK: - Detail
 private struct MemoryDetailView: View {
     let memory: EmotionMemory
     var body: some View {
