@@ -7,10 +7,15 @@
 
 import SwiftUI
 
+private enum Subpage: Hashable {
+    case creatorsIntro
+}
+
 // 二级页：About Us
 struct AboutUsView: View {
     let onBack: () -> Void
     
+    @State private var path = NavigationPath()
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
@@ -87,6 +92,12 @@ struct AboutUsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: Subpage.self) { page in
+            switch page {
+            case .creatorsIntro:
+                RateUsView(onBack: { path.removeLast() })
+            }
+        }
     }
 }
 

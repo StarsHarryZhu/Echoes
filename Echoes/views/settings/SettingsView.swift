@@ -9,7 +9,7 @@ import SwiftUI
 import StoreKit // RateUsView 需要
 
 // 二级页路由
-enum Subpage: Hashable {
+private enum Subpage: Hashable {
     case about, feedback, rate
 }
 
