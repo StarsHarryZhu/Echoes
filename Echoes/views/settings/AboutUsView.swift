@@ -95,7 +95,7 @@ struct AboutUsView: View {
         .navigationDestination(for: Subpage.self) { page in
             switch page {
             case .creatorsIntro:
-                RateUsView(onBack: { path.removeLast() })
+                CreatorsIntroView(onBack: { path.removeLast() })
             }
         }
     }
