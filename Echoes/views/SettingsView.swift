@@ -302,7 +302,7 @@ struct AboutUsView: View {
                         SettingsCard(header: "App") {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Image(systemName: "app.gift.fill")
+                                    Image(systemName: "app.gift.fill")//到时候改成我们的logo
                                         .font(.system(size: 28))
                                         .foregroundStyle(.black)
                                         .frame(width: 40, height: 40)
