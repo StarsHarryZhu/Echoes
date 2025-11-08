@@ -19,7 +19,7 @@ class camera_control: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func capture() async -> camera_return {
         
-        guard UIImagePickerController.isSourceTypeAvailable(camera.source)
+        guard UIImagePickerController.isSourceTypeAvailable(camera_info.source)
         else {
             return camera_return.exception("Camera is not available")
         }
@@ -32,10 +32,10 @@ class camera_control: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         
         let picker = UIImagePickerController()
-        picker.sourceType = camera.source
-        picker.cameraCaptureMode = camera.camera_mode
-        picker.cameraDevice = camera.camera
-        picker.allowsEditing = camera.allow_edit
+        picker.sourceType = camera_info.source
+        picker.cameraCaptureMode = camera_info.camera_mode
+        picker.cameraDevice = camera_info.camera
+        picker.allowsEditing = camera_info.allow_edit
         picker.delegate = self
         
         return await withCheckedContinuation { (continuation: CheckedContinuation<camera_return, Never>) in

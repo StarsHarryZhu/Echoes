@@ -39,7 +39,7 @@ struct text_info{
     static let font = "SmileySans-Oblique"
 }
 
-struct camera{
+struct camera_info{
     static let source = UIImagePickerController.SourceType.camera
     static let camera_mode = UIImagePickerController.CameraCaptureMode.photo
     static let camera = UIImagePickerController.CameraDevice.front
