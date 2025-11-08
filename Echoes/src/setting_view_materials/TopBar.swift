@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct TopBar: View {
+    var size: CGFloat = 24
     let title: String
     var icon: String = "chevron.left"   // 默认左箭头（用于子页返回）
     var onTap: () -> Void
@@ -18,13 +19,15 @@ struct TopBar: View {
             HStack {
                 Button(action: onTap) {
                     Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: size, weight: .semibold))
                         .padding(8)
                         .background(Color(.systemGray6), in: Circle())
                 }
                 Spacer()
                 Text(title)
-                    .font(.system(size: 18, weight: .bold))
+                    .modifier(text_style(
+                        size: size,
+                    ))
                 Spacer()
                 // 右侧占位让标题居中
                 Color.clear.frame(width: 34, height: 34).clipShape(Circle())

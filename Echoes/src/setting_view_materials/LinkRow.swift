@@ -15,6 +15,7 @@ struct LinkRow: View {
         Link(destination: url) {
             HStack {
                 Text(title).foregroundStyle(.primary)
+                
                 Spacer()
                 Image(systemName: "arrow.up.right")
                     .foregroundStyle(.tertiary)

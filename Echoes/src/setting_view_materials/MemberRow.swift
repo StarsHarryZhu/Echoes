@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 struct MemberRow: View {
+    private let name_size: CGFloat = 16
+    private let role_size: CGFloat = 14
     let icon: String
     let name: String
     let role: String
@@ -23,8 +25,16 @@ struct MemberRow: View {
                     .font(.system(size: 20, weight: .semibold))
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text(name).font(.headline)
-                Text(role).font(.subheadline).foregroundStyle(.secondary)
+                Text(name)
+                    .modifier(text_style(
+                        size: name_size,
+                    ))
+                    .font(.headline)
+                Text(role)
+                    .modifier(text_style(
+                        size: role_size,
+                    ))
+                    .foregroundStyle(.secondary)
             }
             Spacer()
         }

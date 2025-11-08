@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct SettingValueRow: View {
+    var size: CGFloat = 16
     let icon: String
     let iconColor: Color
     let title: String
@@ -21,7 +22,9 @@ struct SettingValueRow: View {
                 HStack(spacing: 8) {
                     Text(value)
                         .foregroundStyle(.secondary)
-                        .font(.callout)
+                        .modifier(text_style(
+                            size: size,
+                        ))
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.tertiary)
                         .font(.system(size: 14, weight: .semibold))

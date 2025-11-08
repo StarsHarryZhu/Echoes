@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct SettingRowBase<RightContent: View>: View {
+    var size: CGFloat = 17
     let icon: String
     let iconColor: Color
     let title: String
@@ -18,7 +19,9 @@ struct SettingRowBase<RightContent: View>: View {
         HStack(spacing: 12) {
             IconBox(icon: icon, color: iconColor)
             Text(title)
-                .foregroundStyle(.primary)
+                .modifier(text_style(
+                    size: size,
+                ))
             Spacer()
             right
         }

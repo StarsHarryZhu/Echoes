@@ -45,3 +45,8 @@ struct camera_info{
     static let camera = UIImagePickerController.CameraDevice.front
     static let allow_edit: Bool = false
 }
+
+let intro_text: String =
+"""
+Echoes is built by a small team who believe photos are more than pixels — they’re emotions and stories. We design calm, human-centered tools that help you capture feelings and revisit memories with care.
+"""

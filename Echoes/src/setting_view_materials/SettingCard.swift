@@ -9,15 +9,16 @@ import Foundation
 import SwiftUI
 
 struct SettingsCard<Content: View>: View {
+    var size: CGFloat = 16
     let header: String
     @ViewBuilder var content: Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(header)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .padding(.leading, 6)
+                .modifier(text_style(
+                    size: size
+                ))
 
             VStack(spacing: 0) {
                 content

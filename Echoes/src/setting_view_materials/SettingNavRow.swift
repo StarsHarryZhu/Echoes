@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct SettingNavRow: View {
+    var size: CGFloat = 16
     let icon: String
     let iconColor: Color
     let title: String
@@ -22,7 +23,9 @@ struct SettingNavRow: View {
                     if let detail {
                         Text(detail)
                             .foregroundStyle(.secondary)
-                            .font(.callout)
+                            .modifier(text_style(
+                                size: 16,
+                            ))
                     }
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.tertiary)
