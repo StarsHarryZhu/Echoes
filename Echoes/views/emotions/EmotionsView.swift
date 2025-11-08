@@ -1,216 +1,228 @@
-//
-//  EmotionsView.swift
-//  Echoes
-//
-//  Created by Harry Zhu on 2025/11/7.
-//
-
 import SwiftUI
+import Combine
 
-// MARK: - Emotion 类型
-enum Emotion: String, CaseIterable, Identifiable {
-    case joy = "Joy"
-    case sad = "Sad"
-    case calm = "Calm"
-    case fear = "Fear"
-    case anger = "Anger"
-    case surprise = "Surprise"
+// MARK: - Models
+enum Emotion: String, CaseIterable, Identifiable, Hashable {
+    case joy = "Joy", sad = "Sad", calm = "Calm", angry = "Angry",
+         surprise = "Surprise", fear = "Fear", love = "Love", neutral = "Neutral"
     var id: String { rawValue }
 
+    // 美观用：统一的图标与主色
     var icon: String {
         switch self {
-        case .joy: return "face.smiling"
-        case .sad: return "face.dashed"
-        case .calm: return "wind"
-        case .fear: return "exclamationmark.triangle"
-        case .anger: return "flame"
+        case .joy: return "sun.max.fill"
+        case .sad: return "cloud.rain.fill"
+        case .calm: return "leaf.fill"
+        case .angry: return "flame.fill"
         case .surprise: return "sparkles"
+        case .fear: return "exclamationmark.triangle.fill"
+        case .love: return "heart.fill"
+        case .neutral: return "circle.fill"
         }
     }
-
-    // 你可以在这里放每个情绪的主色
     var tint: Color {
         switch self {
         case .joy: return .yellow
         case .sad: return .blue
         case .calm: return .teal
-        case .fear: return .orange
-        case .anger: return .red
+        case .angry: return .red
         case .surprise: return .purple
+        case .fear: return .orange
+        case .love: return .pink
+        case .neutral: return .gray
         }
     }
 }
 
-// MARK: - 相册与照片占位模型
-struct EmotionAlbum: Identifiable {
+struct EmotionMemory: Identifiable, Hashable {
     let id = UUID()
-    let emotion: Emotion
     let title: String
-    let count: Int
-    // 占位封面（真实项目中可用最近一张或多张合成）
-    let coverSymbol: String
+    let date: Date
+    let cover: String?          // asset name; nil -> placeholder
+    let emotion: Emotion
 }
 
-struct PhotoItem: Identifiable, Hashable {
-    let id = UUID()
-    let symbol: String   // 占位，后续换成真实图片/PHAsset 本地标识
+// MARK: - ViewModel (mock data)
+final class EmotionsVM: ObservableObject {
+    @Published var all: [EmotionMemory] = {
+        let es: [Emotion] = [.joy,.sad,.calm,.angry,.surprise,.fear,.love,.neutral]
+        return (0..<24).map { i in
+            EmotionMemory(title: "Memory \(i+1)", date: .now, cover: nil, emotion: es[i % es.count])
+        }
+    }()
+    func items(for e: Emotion) -> [EmotionMemory] { all.filter { $0.emotion == e } }
 }
 
-// MARK: - 伪数据（后续替换为真实数据源）
-struct EmotionDataSource {
-    static let albums: [EmotionAlbum] = [
-        .init(emotion: .joy, title: "Sunny Weekend", count: 24, coverSymbol: "sun.max"),
-        .init(emotion: .sad, title: "Rainy Night", count: 11, coverSymbol: "cloud.rain"),
-        .init(emotion: .calm, title: "Quiet Morning", count: 18, coverSymbol: "leaf"),
-        .init(emotion: .fear, title: "Dark Alley", count: 5, coverSymbol: "moon.zzz"),
-        .init(emotion: .anger, title: "Traffic Jam", count: 9, coverSymbol: "car.fill"),
-        .init(emotion: .surprise, title: "Birthday Party", count: 30, coverSymbol: "gift")
-    ]
-
-    static func photos(for emotion: Emotion) -> [PhotoItem] {
-        // 仅为示例：返回 20 张占位图标
-        let base: [String] = ["photo","photo.fill","camera","person","figure.walk","mappin","heart","bolt","leaf","sparkles"]
-        return (0..<20).map { _ in PhotoItem(symbol: base.randomElement()!) }
-    }
-}
-
-// MARK: - EmotionsView（分类入口）
+// MARK: - Views
 struct EmotionsView: View {
-    @State private var selectedEmotion: Emotion = .joy
-    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    @StateObject private var vm = EmotionsVM()
+    private let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                // 情绪选择器
-                Picker("Emotion", selection: $selectedEmotion) {
+            // Home: grid of emotions (one card = one emotion)
+            ScrollView {
+                LazyVGrid(columns: cols, spacing: 12) {
                     ForEach(Emotion.allCases) { emo in
-                        Label(emo.rawValue, systemImage: emo.icon).tag(emo)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-
-                // 当前情绪下的相册网格
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(EmotionDataSource.albums.filter { $0.emotion == selectedEmotion }) { album in
-                            NavigationLink {
-                                EmotionDetailView(emotion: album.emotion, title: album.title)
-                            } label: {
-                                EmotionAlbumCard(album: album)
-                            }
+                        let count = vm.items(for: emo).count
+                        NavigationLink(value: emo) {
+                            EmotionGridItem(
+                                emotion: emo,
+                                count: count
+                            )
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 4)
                 }
+                .padding(.horizontal)
+                .padding(.top, 12)
             }
-            // 保持系统大标题靠左
-            .navigationTitle("Emotions")
-            .navigationBarTitleDisplayMode(.large)
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithDefaultBackground()
-                appearance.largeTitleTextAttributes = [
-                    .font: UIFont(name: "SmileySans-Oblique", size: 34)!,
-                    .foregroundColor: UIColor.label
-                ]
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            .navigationTitle("Emotion Album")
+            .navigationDestination(for: Emotion.self) { emo in
+                EmotionListView(emotion: emo, items: vm.items(for: emo))
             }
-
-
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        // 预留操作：导入照片、智能分组、编辑情绪等
-                        Button("Import Photos", systemImage: "square.and.arrow.down") { /* TODO */ }
-                        Button("Smart Grouping", systemImage: "wand.and.stars") { /* TODO */ }
-                        Button("Manage Emotions", systemImage: "slider.horizontal.3") { /* TODO */ }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                }
+            .navigationDestination(for: EmotionMemory.self) { m in
+                MemoryDetailView(memory: m)
             }
         }
     }
 }
 
-// MARK: - 相册卡片
-struct EmotionAlbumCard: View {
-    let album: EmotionAlbum
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(album.emotion.tint.opacity(0.15))
-                    .frame(height: 120)
-                    .overlay {
-                        Image(systemName: album.coverSymbol)
-                            .font(.system(size: 40, weight: .semibold))
-                            .foregroundStyle(album.emotion.tint)
-                    }
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .strokeBorder(.quaternary, lineWidth: 1)
-            )
-            Text(album.title)
-                .font(.headline)
-                .lineLimit(1)
-            HStack(spacing: 6) {
-                Image(systemName: album.emotion.icon)
-                Text(album.emotion.rawValue)
-                Text("· \(album.count)")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-    }
-}
-
-// MARK: - 情绪详情（照片网格）
-struct EmotionDetailView: View {
+// 彩色情绪卡片（更好看）
+private struct EmotionGridItem: View {
     let emotion: Emotion
-    let title: String
-    private let columns = [GridItem(.adaptive(minimum: 90), spacing: 8)]
-
-    var photos: [PhotoItem] {
-        EmotionDataSource.photos(for: emotion)
-    }
+    let count: Int
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(photos) { item in
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(emotion.tint.opacity(0.12))
-                            .frame(height: 90)
-                        Image(systemName: item.symbol)
-                            .imageScale(.large)
-                            .foregroundStyle(emotion.tint)
-                    }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(.quaternary, lineWidth: 1)
+        ZStack(alignment: .bottomLeading) {
+            // 渐变背景 + 阴影 + 细描边
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [emotion.tint.opacity(0.9), emotion.tint.opacity(0.5)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
                     )
-                }
+                )
+                .frame(height: 150)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                )
+                .shadow(radius: 6, y: 3)
+
+            // 右上角数量徽章
+            HStack(spacing: 4) {
+                Image(systemName: "photo.on.rectangle")
+                Text("\(count)")
+            }
+            .font(.caption).bold()
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .padding(10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+
+            // 左下角图标 + 名字
+            HStack(spacing: 10) {
+                Image(systemName: emotion.icon)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .shadow(radius: 2)
+                Text(emotion.rawValue)
+                    .font(.headline).bold()
+                    .foregroundStyle(.white)
             }
             .padding(12)
         }
-        .navigationTitle(title)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Select", systemImage: "checkmark.circle") { /* TODO: 选择模式 */ }
-            }
-        }
+        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
-#Preview {
-    EmotionsView()
+// 某情绪下的相册列表（带彩色 header）
+private struct EmotionListView: View {
+    let emotion: Emotion
+    let items: [EmotionMemory]
+    private let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+
+    var body: some View {
+        ScrollView {
+            // 彩色标题条
+            HStack {
+                Image(systemName: emotion.icon)
+                Text(emotion.rawValue).bold()
+                Spacer()
+                Text("\(items.count) items").font(.subheadline).opacity(0.9)
+            }
+            .foregroundStyle(.white)
+            .padding()
+            .background(
+                LinearGradient(colors: [emotion.tint, emotion.tint.opacity(0.6)],
+                               startPoint: .leading, endPoint: .trailing)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.horizontal)
+
+            LazyVGrid(columns: cols, spacing: 12) {
+                ForEach(items) { m in
+                    NavigationLink(value: m) {
+                        cover(of: m).resizable().scaledToFill()
+                            .frame(height: 150).clipped()
+                            .overlay(alignment: .bottomLeading) {
+                                Text(m.title)
+                                    .font(.footnote).bold().foregroundStyle(.white)
+                                    .padding(.horizontal, 8).padding(.vertical, 6)
+                                    .background(.black.opacity(0.35), in: Capsule())
+                                    .padding(8)
+                            }
+                            .cornerRadius(14)
+                            .shadow(radius: 3, y: 2)
+                    }
+                }
+            }
+            .padding(.horizontal).padding(.top, 12)
+        }
+        .navigationTitle(emotion.rawValue)
+    }
+
+    private func cover(of m: EmotionMemory) -> Image {
+        if let n = m.cover, UIImage(named: n) != nil { return Image(n) }
+        return Image(systemName: "photo.on.rectangle.angled")
+    }
 }
 
+// 详情页卡片
+private struct MemoryDetailView: View {
+    let memory: EmotionMemory
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(memory.emotion.tint.opacity(0.12))
+                        .frame(height: 320)
+                    cover.resizable().scaledToFit().frame(maxHeight: 300)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(.quaternary, lineWidth: 1)
+                )
+                .padding(.horizontal)
+
+                Text(memory.title).font(.title3).bold()
+                HStack(spacing: 8) {
+                    Image(systemName: memory.emotion.icon)
+                        .foregroundStyle(memory.emotion.tint)
+                    Text(memory.emotion.rawValue)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.bottom, 24)
+        }
+        .navigationTitle("Detail")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    private var cover: Image {
+        if let n = memory.cover, UIImage(named: n) != nil { return Image(n) }
+        return Image(systemName: "photo")
+    }
+}
+
+#Preview { EmotionsView() }
