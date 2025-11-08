@@ -26,7 +26,7 @@ struct SettingsView: View {
 
             VStack(spacing: 16) {
                 // 顶部导航（自定义，居中标题）
-                TopBar(title: "设置") {
+                TopBar(title: "Setting") {
                     dismiss()
                 }
 
@@ -34,13 +34,12 @@ struct SettingsView: View {
                     VStack(spacing: 20) {
 
                         // MARK: 拍摄
-                        SettingsCard(header: "拍摄") {
-                            
-                            SettingToggleRow(icon: "level", iconColor: .black, title: "稳定器", isOn: $stabilizer)
+                        SettingsCard(header: "Capture") {
+        
                             Divider()
-                            SettingToggleRow(icon: "square.grid.3x3", iconColor: .black, title: "预览网格", isOn: $grid)
+                            SettingToggleRow(icon: "square.grid.3x3", iconColor: .black, title: "Preview Grid", isOn: $grid)
                             Divider()
-                            SettingToggleRow(icon: "line.diagonal", iconColor: .black, title: "水平指示器", isOn: $level)
+                            SettingToggleRow(icon: "line.diagonal", iconColor: .black, title: "Gradienter", isOn: $level)
                            
                         }
 
@@ -60,24 +59,20 @@ struct SettingsView: View {
 
                         // MARK: 通用
                         SettingsCard(header: "通用") {
-                            SettingNavRow(icon: "person.badge.plus", iconColor: .black, title: "去登录") { }
+                            SettingNavRow(icon: "person.badge.plus", iconColor: .black, title: "Personal Infomation") { }
                             Divider()
-                            SettingNavRow(icon: "hand.draw", iconColor: .black, title: "手势") { }
-                            Divider()
-                            SettingNavRow(icon: "heart.circle", iconColor: .black, title: "我的订阅") { }
-                            Divider()
-                            SettingValueRow(icon: "trash", iconColor: .red, title: "清除缓存", value: cacheSizeText) {
+                            SettingValueRow(icon: "trash", iconColor: .red, title: "Clear Cache", value: cacheSizeText) {
                                 // 执行清理动作后，更新 cacheSizeText
                             }
                         }
 
                         // MARK: 关于
-                        SettingsCard(header: "关于") {
-                            SettingNavRow(icon: "info.circle", iconColor: .black, title: "关于我们") { }
+                        SettingsCard(header: "About") {
+                            SettingNavRow(icon: "info.circle", iconColor: .black, title: "About us") { }
                             Divider()
-                            SettingNavRow(icon: "envelope.badge", iconColor: .black, title: "反馈与建议") { }
+                            SettingNavRow(icon: "envelope.badge", iconColor: .black, title: "Feedback and Suggestions") { }
                             Divider()
-                            SettingNavRow(icon: "star", iconColor: .black, title: "去评分") { }
+                            SettingNavRow(icon: "star", iconColor: .black, title: "Go Score") { }
                         }
 
                         Spacer(minLength: 24)
@@ -199,7 +194,7 @@ private struct SettingToggleRow: View {
                 }
                 Toggle("", isOn: $isOn)
                     .labelsHidden()
-                    .tint(.green)
+                    .tint(.blue)
             }
         }
     }
