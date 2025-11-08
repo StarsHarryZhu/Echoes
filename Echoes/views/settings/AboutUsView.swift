@@ -123,9 +123,9 @@ Echoes is built by a small team who believe photos are more than pixels — they
 
                         SettingsCard(header: "Team") {
                             VStack(alignment: .leading, spacing: 14) {
-                                MemberRow(icon: "person.crop.circle.fill", name: "Harry Zhu", role: "Product & Design")
+                                MemberRow(icon: "person.crop.circle.fill", name: "Hui Jin", role: "Product & Design")
                                 Divider()
-                                MemberRow(icon: "brain.head.profile", name: "Echoes Lab", role: "Vision & ML")
+                                MemberRow(icon: "person.crop.circle.fill", name: "Huanyi Zhu", role: "Product & Design")
                             }
                             .padding(.horizontal, 14)
                             .padding(.vertical, 14)
