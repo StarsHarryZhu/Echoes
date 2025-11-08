@@ -38,3 +38,10 @@ struct camera_button{
 struct text_info{
     static let font = "SmileySans-Oblique"
 }
+
+struct camera{
+    static let source = UIImagePickerController.SourceType.camera
+    static let camera_mode = UIImagePickerController.CameraCaptureMode.photo
+    static let camera = UIImagePickerController.CameraDevice.front
+    static let allow_edit: Bool = false
+}
