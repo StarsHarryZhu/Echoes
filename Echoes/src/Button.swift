@@ -20,21 +20,21 @@ struct button: View {
 
     var body: some View {
         Button(action: {
-            action() // 直接执行动作，不做动画
+            action()
         }) {
             Image(systemName: image)
                 .font(.system(size: size * 0.4))
                 .frame(width: size, height: size)
                 .foregroundColor(foregroundColor)
-                .background(.ultraThinMaterial) // ✅ iOS 26 “玻璃”效果
+                .background(.ultraThinMaterial)
                 .clipShape(Circle())
                 .shadow(radius: 5)
                 .overlay(
                     Circle()
                         .stroke(.white.opacity(0.25), lineWidth: 1)
                 )
-                .scaleEffect(isPressed ? 0.9 : 1.0) // ✅ 点击缩放动画
+                .scaleEffect(isPressed ? 0.9 : 1.0)
         }
-        .buttonStyle(.plain) // 避免默认高亮灰色
+        .buttonStyle(.plain)
     }
 }

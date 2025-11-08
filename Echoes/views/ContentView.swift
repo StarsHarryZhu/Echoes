@@ -11,9 +11,6 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView {
-                Tab(tabview_words.photos, systemImage: tabview_images.photos) {
-                    PhotosView()
-                }
                 Tab(tabview_words.emotion, systemImage: tabview_images.emotion) {
                     EmotionsView()
                 }
@@ -22,9 +19,6 @@ struct ContentView: View {
                 }
                 Tab(tabview_words.memory, systemImage: tabview_images.memory) {
                     MemoriesView()
-                }
-                Tab(tabview_words.home, systemImage: tabview_images.home) {
-                    HomeView()
                 }
             }
 
