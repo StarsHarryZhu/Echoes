@@ -101,16 +101,15 @@ struct AboutUsView: View {
     }
 }
 
-// 三级页：Creators Intro（可编辑＋持久化）
+// 三级页：Creators Intro（只读版）
 struct CreatorsIntroView: View {
     let onBack: () -> Void
 
-    @AppStorage("creatorsIntroText") private var introText: String =
+    // 只读文案（如需后期从远端/本地化加载可改成 @State 或模型绑定）
+    private let introText: String =
     """
 Echoes is built by a small team who believe photos are more than pixels — they’re emotions and stories. We design calm, human-centered tools that help you capture feelings and revisit memories with care.
 """
-
-    @State private var isEditing = false
 
     var body: some View {
         ZStack {
@@ -132,35 +131,12 @@ Echoes is built by a small team who believe photos are more than pixels — they
                         }
 
                         SettingsCard(header: "Our Story") {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text(isEditing ? "Editing" : "Introduction")
-                                        .font(.headline)
-                                    Spacer()
-                                    Button(isEditing ? "Done" : "Edit") {
-                                        isEditing.toggle()
-                                    }
-                                    .font(.callout.weight(.semibold))
-                                }
-
-                                if isEditing {
-                                    TextEditor(text: $introText)
-                                        .frame(minHeight: 160)
-                                        .padding(10)
-                                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color(.quaternaryLabel))
-                                        )
-                                } else {
-                                    Text(introText)
-                                        .font(.callout)
-                                        .foregroundStyle(.primary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 14)
+                            Text(introText)
+                                .font(.callout)
+                                .foregroundStyle(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 14)
                         }
 
                         Spacer(minLength: 24)
