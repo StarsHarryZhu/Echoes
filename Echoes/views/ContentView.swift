@@ -51,8 +51,7 @@ struct ContentView: View {
                         foregroundColor: .black
                     ) {
                         Task {
-                            let camera = camera_control()
-                            _ = await camera.capture()
+                            await capture()
                         }
                     }
                     .padding(.bottom, 25) // 贴近 Tab 栏上方

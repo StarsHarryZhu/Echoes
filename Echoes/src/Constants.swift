@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-enum emotion{
+enum emotions{
     case joy
     case sad
     case calm

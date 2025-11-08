@@ -11,14 +11,12 @@ import SwiftUI
 
 struct text_style: ViewModifier {
     var size: CGFloat = 28
-    var style: Font = .callout
 
     
     func body(content: Content) -> some View {
         if UIFont(name: text_info.font, size: size) != nil {
             content
                 .font(.custom(text_info.font, size: size))
-                .font(style)
 
         } else {
             content

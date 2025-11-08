@@ -1,24 +1,31 @@
 //
-//  EmotionRecognation.swift
+//  EmotionDetect.swift
 //  Echoes
 //
-//  Created by Harry Zhu on 2025/11/7.
+//  Created by Harry Zhu on 2025/11/8.
 //
 
 import Foundation
 import UIKit
-import Vision
-
 
 enum emotion_return{
-    case success(emotion)
+    case success(emotions)
     case fail(String)
 }
 
-func emotion_detect(in image: UIImage) -> emotion_return{
-    guard let CG_image = image.cgImage else {
-        return .fail("Failed to get CGImage from UIImage")
+func emotion_detect(from image: UIImage) -> emotion_return {
+    let result = detect_face(in: image)
+    switch result{
+        case .success(let face):
+            if face == nil {
+                
+            } else {
+                
+            }
+        
+        case .fail(let message):
+            alert(message)
+        
     }
-    
     return .fail("Not implemented")
 }
