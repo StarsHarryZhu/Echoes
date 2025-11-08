@@ -9,20 +9,37 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var showSettings = false
-
+    @State private var selected = 0
+    @State private var disable_tab = 1
     var body: some View {
         NavigationStack {
             ZStack {
-                TabView {
-                    Tab(tabview_words.emotion, systemImage: tabview_images.emotion) {
-                        EmotionsView()
-                    }
-                    Tab("", systemImage: "") {
-                        // 你的第二个 Tab（留空占位）
-                    }
-                    Tab(tabview_words.memory, systemImage: tabview_images.memory) {
-                        MemoriesView()
-                    }
+                TabView(selection: $selected) {
+                    EmotionsView()
+                        .tabItem {
+                            Label(tabview_words.emotion,
+                                  systemImage: tabview_images.emotion)
+                        }
+                        .tag(0)
+
+                    Text("")
+                        .tabItem {
+                            Label("", systemImage: "")
+                        }
+                        .tag(1)
+
+                    MemoriesView()
+                        .tabItem {
+                            Label(tabview_words.memory,
+                                  systemImage: tabview_images.memory)
+                        }
+                        .tag(2)
+                }
+                .onChange(of: selected) { old, new in
+                        if new == disable_tab {
+                            
+                            selected = old
+                        }
                 }
 
                 // 中间悬浮相机按钮（保留你的实现）

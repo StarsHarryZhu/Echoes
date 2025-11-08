@@ -19,9 +19,7 @@ struct button: View {
     @State private var isPressed = false
 
     var body: some View {
-        Button(action: {
-            action()
-        }) {
+        Button(action: { action() }) {
             Image(systemName: image)
                 .font(.system(size: size * 0.4))
                 .frame(width: size, height: size)
