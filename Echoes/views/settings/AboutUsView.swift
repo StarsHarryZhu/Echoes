@@ -14,14 +14,15 @@ private enum Subpage: Hashable {
 // 二级页：About Us
 struct AboutUsView: View {
     let onBack: () -> Void
-    
-    @State private var path = NavigationPath()
+    @Environment(\.dismiss) private var dismiss   // 用系统 dismiss 返回更安全
+
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             VStack(spacing: 16) {
+                // 顶部返回：仍调用父层传入的 onBack（如果你愿意也可以改成 { dismiss() }）
                 TopBar(title: "About Us", onTap: onBack)
-                
+
                 ScrollView {
                     VStack(spacing: 20) {
                         // App 信息
@@ -92,10 +93,11 @@ struct AboutUsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        // 由最近的 NavigationStack 负责 push；这里注册目的地即可
         .navigationDestination(for: Subpage.self) { page in
             switch page {
             case .creatorsIntro:
-                CreatorsIntroView(onBack: { path.removeLast() })
+                CreatorsIntroView()   // 不再传 onBack；内部用 dismiss()
             }
         }
     }
@@ -103,9 +105,8 @@ struct AboutUsView: View {
 
 // 三级页：Creators Intro（只读版）
 struct CreatorsIntroView: View {
-    let onBack: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
-    // 只读文案（如需后期从远端/本地化加载可改成 @State 或模型绑定）
     private let introText: String =
     """
 Echoes is built by a small team who believe photos are more than pixels — they’re emotions and stories. We design calm, human-centered tools that help you capture feelings and revisit memories with care.
@@ -115,7 +116,7 @@ Echoes is built by a small team who believe photos are more than pixels — they
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
             VStack(spacing: 16) {
-                TopBar(title: "About Creaters", onTap: onBack)
+                TopBar(title: "About Creaters", onTap: { dismiss() })
 
                 ScrollView {
                     VStack(spacing: 20) {
