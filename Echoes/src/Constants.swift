@@ -50,3 +50,4 @@ let intro_text: String =
 """
 Echoes is built by a small team who believe photos are more than pixels — they’re emotions and stories. We design calm, human-centered tools that help you capture feelings and revisit memories with care.
 """
+let rate_us_text: String = "If you like Echoes, a 5-star rating really helps! ✨"

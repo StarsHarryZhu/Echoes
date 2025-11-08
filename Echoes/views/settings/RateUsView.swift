@@ -9,6 +9,9 @@ import SwiftUI
 import StoreKit
 
 struct RateUsView: View {
+    private let button_text_size: CGFloat = 18
+    private let text_size: CGFloat = 16
+    
     let onBack: () -> Void
     @Environment(\.requestReview) private var requestReview // iOS 16+
 
@@ -25,7 +28,10 @@ struct RateUsView: View {
                 VStack(spacing: 20) {
                     SettingsCard(header: "Support Echoes") {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("If you like Echoes, a 5-star rating really helps! ✨")
+                            Text(rate_us_text)
+                                .modifier(text_style(
+                                    size: text_size
+                                ))
                                 .padding(.horizontal, 14)
                                 .padding(.top, 14)
                             
@@ -39,7 +45,9 @@ struct RateUsView: View {
                                     requestReview()
                                 } label: {
                                     Text("Rate In-App")
-                                        .font(.headline)
+                                        .modifier(text_style(
+                                            size: button_text_size,
+                                        ))
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
                                         .background(Color.black, in: RoundedRectangle(cornerRadius: 12))
@@ -53,7 +61,9 @@ struct RateUsView: View {
                                     }
                                 } label: {
                                     Text("Open App Store")
-                                        .font(.headline)
+                                        .modifier(text_style(
+                                            size: button_text_size - 1
+                                        ))
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
                                         .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))

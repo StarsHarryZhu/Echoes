@@ -9,6 +9,9 @@ import SwiftUI
 
 // B) Feedback
 struct FeedbackView: View {
+    private let button_text_size: CGFloat = 16
+    private let prompt_size: CGFloat = 18
+    
     let onBack: () -> Void
     @State private var email: String = ""
     @State private var subject: String = ""
@@ -29,6 +32,9 @@ struct FeedbackView: View {
                         SettingsCard(header: "Contact") {
                             VStack(spacing: 12) {
                                 TextField("Email (optional)", text: $email)
+                                    .modifier(text_style(
+                                        size: prompt_size,
+                                    ))
                                     .textInputAutocapitalization(.never)
                                     .keyboardType(.emailAddress)
                                     .padding(12)
@@ -38,6 +44,9 @@ struct FeedbackView: View {
                                     .padding(.top, 14)
 
                                 TextField("Subject", text: $subject)
+                                    .modifier(text_style(
+                                        size: prompt_size,
+                                    ))
                                     .padding(12)
                                     .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
                                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.quaternaryLabel)))
@@ -68,6 +77,9 @@ struct FeedbackView: View {
                             submitted = true
                         } label: {
                             Text("Submit")
+                                .modifier(text_style(
+                                    size: button_text_size
+                                ))
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)

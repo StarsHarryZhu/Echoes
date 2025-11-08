@@ -66,7 +66,7 @@ struct SettingsView: View {
                             }
 
                             // MARK: 通用
-                            SettingsCard(header: "通用") {
+                            SettingsCard(header: "General") {
                                 SettingNavRow(icon: "person.badge.plus", iconColor: .black, title: "Personal Infomation") { }
                                 Divider()
                                 SettingValueRow(icon: "trash", iconColor: .red, title: "Clear Cache", value: cache_size) {
