@@ -50,8 +50,10 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "gearshape")
                     }
-                    .accessibilityLabel("Settings")
                 }
+            }
+            .fullScreenCover(isPresented: $showSettings) {
+                SettingsView() // 全屏
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView() // 占位设置页（见下）
