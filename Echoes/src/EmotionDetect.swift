@@ -9,18 +9,16 @@ import Foundation
 import UIKit
 import Vision
 
+
 enum emotion_return{
-    case success(String)
+    case success(emotion)
     case fail(String)
 }
 
-func detect_emotion(from image: UIImage) -> emotion_return{
-    guard let CGImage = image.cgImage else {
-        return emotion_return.fail("❌ 无法从 UIImage 获取 CGImage")
+func emotion_detect(in image: UIImage) -> emotion_return{
+    guard let CG_image = image.cgImage else {
+        return .fail("Failed to get CGImage from UIImage")
     }
     
-    let request = VNDetectFaceRectanglesRequest()
-    let handler = VNImageRequestHandler(cgImage: CGImage, options: [:])
-    
-    return emotion_return.fail("😄 暂时没有实现情绪识别功能")
+    return .fail("Not implemented")
 }

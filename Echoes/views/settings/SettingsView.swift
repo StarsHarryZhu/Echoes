@@ -18,13 +18,14 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     // 示例开关/选项（持久化）
-    @AppStorage("simpleMode")      private var simpleMode = false
-    @AppStorage("stabilizer")      private var stabilizer = true
-    @AppStorage("grid")            private var grid = true
-    @AppStorage("level")           private var level = true
-    @AppStorage("storageAlert")    private var storageAlert = true
-    @AppStorage("recordMode")      private var recordMode = 0 // 0: 仅录制原片
-    @AppStorage("cacheSizeText")   private var cacheSizeText = "51.38MB"
+    @AppStorage("grid")
+        private var grid: Bool = settings.grid
+    @AppStorage("gradienter")
+        private var gradienter: Bool = settings.gradienter
+    @AppStorage("record_mode")
+        private var record_mode: Int = settings.record_mode
+    @AppStorage("cache_size")
+        private var cache_size: String = settings.cache_size
 
     // ✅ push 用的导航路径
     @State private var path = NavigationPath()
@@ -47,7 +48,7 @@ struct SettingsView: View {
                             SettingsCard(header: "Capture") {
                                 SettingToggleRow(icon: "square.grid.3x3", iconColor: .black, title: "Preview Grid", isOn: $grid)
                                 Divider()
-                                SettingToggleRow(icon: "line.diagonal", iconColor: .black, title: "Gradienter", isOn: $level)
+                                SettingToggleRow(icon: "line.diagonal", iconColor: .black, title: "Gradienter", isOn: $gradienter)
                             }
 
                             // MARK: 性能
@@ -59,7 +60,7 @@ struct SettingsView: View {
 
                             // MARK: 录制模式
                             SettingsCard(header: "录制模式") {
-                                SettingNavRow(icon: "cube.box", iconColor: .black, title: "录制模式", detail: recordModeText) {
+                                SettingNavRow(icon: "cube.box", iconColor: .black, title: "录制模式", detail: record_mode_text) {
                                     // path.append(.recordMode) // 需要时再加
                                 }
                             }
@@ -68,7 +69,7 @@ struct SettingsView: View {
                             SettingsCard(header: "通用") {
                                 SettingNavRow(icon: "person.badge.plus", iconColor: .black, title: "Personal Infomation") { }
                                 Divider()
-                                SettingValueRow(icon: "trash", iconColor: .red, title: "Clear Cache", value: cacheSizeText) {
+                                SettingValueRow(icon: "trash", iconColor: .red, title: "Clear Cache", value: cache_size) {
                                     // 执行清理动作后，更新 cacheSizeText
                                 }
                             }
@@ -111,8 +112,8 @@ struct SettingsView: View {
         }
     }
 
-    private var recordModeText: String {
-        switch recordMode {
+    private var record_mode_text: String {
+        switch record_mode {
         case 0: return "仅录制原片"
         default: return "自定义"
         }

@@ -8,6 +8,15 @@
 import Foundation
 import UIKit
 
+enum emotion{
+    case joy
+    case sad
+    case calm
+    case fear
+    case anger
+    case surprise
+}
+
 struct tabview_words{
     static let home = "Home"
     static let emotion = "Emotions"
