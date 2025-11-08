@@ -59,13 +59,11 @@ struct AboutUsView: View {
                             .padding(.horizontal, 14)
                         }
                         
-                        SettingsCard(header: "Links") {
-                            VStack(spacing: 0) {
-                                LinkRow(title: "Privacy Policy", url: URL(string: "https://example.com/privacy")!)
-                                Divider()
-                                LinkRow(title: "Terms of Service", url: URL(string: "https://example.com/terms")!)
-                                Divider()
-                                LinkRow(title: "Official Website", url: URL(string: "https://example.com")!)
+                        SettingsCard(header: "About Creaters") {
+                            SettingNavRow(icon: "person", iconColor: .black, title: "Creaters") {
+                               //这里要继续写页面
+                            }
+                            Divider()
                             }
                         }
                         
@@ -77,7 +75,7 @@ struct AboutUsView: View {
             }
         }
     }
-}
+
 
 //#Preview {
 //    AboutUsView()
