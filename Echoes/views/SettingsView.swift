@@ -36,7 +36,7 @@ struct SettingsView: View {
 
                 VStack(spacing: 16) {
                     // 顶部导航（自定义，居中标题）
-                    TopBar(title: "Settings", icon: "chevron.down") {
+                    TopBar(title: "Settings", icon: "xmark") {
                         dismiss() // 关闭整个设置页（通常是从 fullScreenCover 弹出的）
                     }
 
