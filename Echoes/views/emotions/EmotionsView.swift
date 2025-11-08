@@ -54,7 +54,11 @@ final class EmotionsVM: ObservableObject {
     @Published var all: [EmotionMemory] = {
         let es: [Emotion] = [.joy,.sad,.calm,.angry,.surprise,.fear,.love,.neutral]
         return (0..<24).map { i in
-            EmotionMemory(title: "Memory \(i+1)", date: .now, cover: nil, emotion: es[i % es.count])
+            // 造一些不同日期
+            EmotionMemory(title: "Memory \(i+1)",
+                          date: .now.addingTimeInterval(Double(-i * 86_400)),
+                          cover: nil,
+                          emotion: es[i % es.count])
         }
     }()
     func items(for e: Emotion) -> [EmotionMemory] { all.filter { $0.emotion == e } }
@@ -72,7 +76,7 @@ struct EmotionsView: View {
                     ForEach(Emotion.allCases) { emo in
                         let count = vm.items(for: emo).count
                         NavigationLink(value: emo) {
-                            EmotionGridItem(emotion: emo, count: count)   // 仅数字徽章
+                            EmotionGridItem(emotion: emo, count: count)   // 右上角仅数字徽章（白色）
                         }
                     }
                 }
@@ -90,7 +94,7 @@ struct EmotionsView: View {
     }
 }
 
-// MARK: - Emotion Card (badge = number only)
+// MARK: - Emotion Card
 private struct EmotionGridItem: View {
     let emotion: Emotion
     let count: Int
@@ -98,29 +102,22 @@ private struct EmotionGridItem: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [emotion.tint.opacity(0.9), emotion.tint.opacity(0.5)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                )
+                .fill(LinearGradient(colors: [emotion.tint.opacity(0.9), emotion.tint.opacity(0.5)],
+                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(height: 150)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(.white.opacity(0.18), lineWidth: 1))
                 .shadow(radius: 6, y: 3)
 
-            // 右上角仅数字徽章
+            // 白色数字徽章
             Text("\(count)")
                 .font(.caption).bold()
+                .foregroundColor(.white)
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(.ultraThinMaterial, in: Capsule())
                 .padding(10)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .foregroundColor(.white)
 
-            // 图标 + 文本
             HStack(spacing: 10) {
                 Image(systemName: emotion.icon)
                     .font(.system(size: 28, weight: .semibold))
@@ -135,7 +132,7 @@ private struct EmotionGridItem: View {
     }
 }
 
-// MARK: - Emotion Album Grid
+// MARK: - Emotion Album Grid（标题显示日期：yyMMdd）
 private struct EmotionListView: View {
     let emotion: Emotion
     let items: [EmotionMemory]
@@ -143,6 +140,7 @@ private struct EmotionListView: View {
 
     var body: some View {
         ScrollView {
+            // 彩色 Header
             HStack {
                 Image(systemName: emotion.icon)
                 Text(emotion.rawValue).bold()
@@ -160,10 +158,11 @@ private struct EmotionListView: View {
             LazyVGrid(columns: cols, spacing: 12) {
                 ForEach(items) { m in
                     NavigationLink(value: m) {
-                        cover(of: m).resizable().scaledToFill()
+                        thumb(of: m).resizable().scaledToFill()
                             .frame(height: 150).clipped()
                             .overlay(alignment: .bottomLeading) {
-                                Text(m.title)
+                                // 显示日期：yyMMdd（例：251108）
+                                Text(formattedDate(m.date))
                                     .font(.footnote).bold().foregroundStyle(.white)
                                     .padding(.horizontal, 8).padding(.vertical, 6)
                                     .background(.black.opacity(0.35), in: Capsule())
@@ -179,9 +178,14 @@ private struct EmotionListView: View {
         .navigationTitle(emotion.rawValue)
     }
 
-    private func cover(of m: EmotionMemory) -> Image {
+    private func thumb(of m: EmotionMemory) -> Image {
         if let n = m.cover, UIImage(named: n) != nil { return Image(n) }
         return Image(systemName: "photo.on.rectangle.angled")
+    }
+    private func formattedDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyMMdd"
+        return f.string(from: date)
     }
 }
 
@@ -195,7 +199,7 @@ private struct MemoryDetailView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(memory.emotion.tint.opacity(0.12))
                         .frame(height: 320)
-                    cover.resizable().scaledToFit().frame(maxHeight: 300)
+                    coverImage.resizable().scaledToFit().frame(maxHeight: 300)
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -203,7 +207,7 @@ private struct MemoryDetailView: View {
                 )
                 .padding(.horizontal)
 
-                Text(memory.title).font(.title3).bold()
+                Text(formattedDate(memory.date)).font(.title3).bold()
                 HStack(spacing: 8) {
                     Image(systemName: memory.emotion.icon)
                         .foregroundStyle(memory.emotion.tint)
@@ -216,9 +220,16 @@ private struct MemoryDetailView: View {
         .navigationTitle("Detail")
         .navigationBarTitleDisplayMode(.inline)
     }
-    private var cover: Image {
+
+    // ✅ 改名为 coverImage，避免与 thumb(of:) 冲突
+    private var coverImage: Image {
         if let n = memory.cover, UIImage(named: n) != nil { return Image(n) }
         return Image(systemName: "photo")
+    }
+    private func formattedDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyMMdd"
+        return f.string(from: date)
     }
 }
 
