@@ -60,7 +60,22 @@ struct EmotionListView: View {
             }
             .padding(.horizontal).padding(.top, 12)
         }
+        // 系统导航标题（用于返回栏与可访问性）
         .navigationTitle(emotion.rawValue)
+        .navigationBarTitleDisplayMode(.inline)
+        // ✅ 使用 principal 自定义“Calm / Joy …”标题（自定义字体 + 图标）
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 8) {
+                    Image(systemName: emotion.icon)
+                        .font(.system(size: 20, weight: .semibold))
+                    Text(emotion.rawValue)
+                        .font(.custom(text_info.font, size: 26)).bold()
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
     }
 }
 

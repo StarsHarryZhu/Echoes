@@ -34,6 +34,7 @@ struct EmotionsView: View {
                 MemoryDetailView(memory: m)
             }
         }
+        .font(.custom(text_info.font, size: 17))
     }
 }
 
