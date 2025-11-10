@@ -17,7 +17,10 @@ struct ContentView: View {
             ZStack {
                 TabView(selection: $selected) {
                     EmotionsView()
-                        .tabItem { Label(tabview_words.emotion, systemImage: tabview_images.emotion) }
+                        .tabItem { Label(
+                            tabview_words.emotion,
+                            systemImage: tabview_images.emotion
+                        )}
                         .tag(0)
 
                     // disabled middle tab (kept for spacing)
@@ -26,18 +29,25 @@ struct ContentView: View {
                         .tag(1)
 
                     MemoriesView()
-                        .tabItem { Label(tabview_words.memory, systemImage: tabview_images.memory) }
+                        .tabItem { Label(
+                            tabview_words.memory,
+                            systemImage: tabview_images.memory
+                        )}
                         .tag(2)
                 }
                 .onChange(of: selected) { old, new in
-                    if new == disabled_tab { selected = old }
+                    if new == disabled_tab {
+                        selected = old
+                    }
                 }
 
                 // 中间悬浮相机按钮
                 VStack {
                     Spacer()
                     button(image: camera_button.image, size: 70, foregroundColor: .black) {
-                        Task { await capture() }
+                        Task {
+                            await capture()
+                        }
                     }
                     .padding(.bottom, 25)
                 }
@@ -79,16 +89,6 @@ struct ContentView: View {
             .fullScreenCover(isPresented: $show_settings) {
                 NavigationStack {
                     SettingsView()
-                        .navigationTitle("Settings")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("Done") { show_settings = false }
-                                    .bold()
-                            }
-                        }
-                        // 如需禁止下滑关闭：
-                        // .interactiveDismissDisabled(true)
                 }
             }
         }
