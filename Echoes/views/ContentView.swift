@@ -10,96 +10,87 @@ import SwiftUI
 struct ContentView: View {
     @State private var showSettings = false
     @State private var selected = 0
-    @State private var disable_tab = 1
+    private let disabledTab = 1
+
     var body: some View {
         NavigationStack {
             ZStack {
                 TabView(selection: $selected) {
                     EmotionsView()
-                        .tabItem {
-                            Label(tabview_words.emotion,
-                                  systemImage: tabview_images.emotion)
-                        }
+                        .tabItem { Label(tabview_words.emotion, systemImage: tabview_images.emotion) }
                         .tag(0)
 
+                    // disabled middle tab (kept for spacing)
                     Text("")
-                        .tabItem {
-                            Label("", systemImage: "")
-                        }
+                        .tabItem { Label("", systemImage: "") }
                         .tag(1)
 
                     MemoriesView()
-                        .tabItem {
-                            Label(tabview_words.memory,
-                                  systemImage: tabview_images.memory)
-                        }
+                        .tabItem { Label(tabview_words.memory, systemImage: tabview_images.memory) }
                         .tag(2)
                 }
                 .onChange(of: selected) { old, new in
-                        if new == disable_tab {
-                            
-                            selected = old
-                        }
+                    if new == disabledTab { selected = old }
                 }
 
-                // 中间悬浮相机按钮（保留你的实现）
+                // 中间悬浮相机按钮
                 VStack {
                     Spacer()
-                    button(
-                        image: camera_button.image,
-                        size: 70,
-                        foregroundColor: .black
-                    ) {
-                        Task {
-                            await capture()
-                        }
+                    button(image: camera_button.image, size: 70, foregroundColor: .black) {
+                        Task { await capture() }
                     }
-                    .padding(.bottom, 25) // 贴近 Tab 栏上方
+                    .padding(.bottom, 25)
                 }
                 .ignoresSafeArea(edges: .bottom)
             }
-            // 全局「设置」齿轮（常驻）
+
+            // ✅ 自定义导航栏标题（左对齐 + 相机图标）
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                // 左侧标题 + 图标
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "camera.shutter.button")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.primary)
+
+                        Text("Echoes")
+                            .font(.title2)
+                            .bold()
+
+                        Spacer(minLength: 0)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // 右侧齿轮按钮
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showSettings = true } label: {
+                        Image(systemName: "gearshape")
+                            .imageScale(.large)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+
+            // ✅ 全屏设置页
             .fullScreenCover(isPresented: $showSettings) {
-                SettingsView() // 全屏
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView() // 占位设置页（见下）
-            }
-            // 统一设置导航栏标题字体（方案A）
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithDefaultBackground()
-                // 大标题（靠左样式）
-                if let font = UIFont(name: "SmileySans-Oblique", size: 34) {
-                    appearance.largeTitleTextAttributes = [
-                        .font: font,
-                        .foregroundColor: UIColor.label
-                    ]
+                NavigationStack {
+                    SettingsView()
+                        .navigationTitle("Settings")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Done") { showSettings = false }
+                                    .bold()
+                            }
+                        }
+                        // 如需禁止下滑关闭：
+                        // .interactiveDismissDisabled(true)
                 }
-                // 如需也改小标题（inline）可取消注释：
-                // if let small = UIFont(name: "SmileySans-Oblique", size: 18) {
-                //     appearance.titleTextAttributes = [
-                //         .font: small,
-                //         .foregroundColor: UIColor.label
-                //     ]
-                // }
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
             }
         }
     }
 }
 
-
-#Preview {
-    ContentView()
-}
+#Preview { ContentView() }
