@@ -25,10 +25,10 @@ struct EmotionGridItem: View {
 
             // 白色数字徽章
             Text("\(count)")
-//                .font(.caption).bold()
-                .modifier(text_style(
-                    size: name_size,
-                ))
+                .font(.caption).bold()
+//                .modifier(text_style(
+//                    size: name_size,
+//                ))
                 .foregroundColor(.white)
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(.ultraThinMaterial, in: Capsule())
