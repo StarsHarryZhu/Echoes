@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 enum emotion_return{
-    case success(emotions)
+    case success(emotion)
     case fail(String)
 }
 

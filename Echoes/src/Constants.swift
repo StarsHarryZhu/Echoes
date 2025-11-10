@@ -6,15 +6,40 @@
 //
 
 import Foundation
+import Combine
 import UIKit
+import SwiftUI
 
-enum emotions{
-    case joy
-    case sad
-    case calm
-    case fear
-    case anger
-    case surprise
+enum emotion: String, CaseIterable, Identifiable, Hashable {
+    case joy = "Joy", sad = "Sad", calm = "Calm", angry = "Angry",
+         surprise = "Surprise", fear = "Fear", love = "Love", neutral = "Neutral"
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .joy: return "sun.max.fill"
+        case .sad: return "cloud.rain.fill"
+        case .calm: return "leaf.fill"
+        case .angry: return "flame.fill"
+        case .surprise: return "sparkles"
+        case .fear: return "exclamationmark.triangle.fill"
+        case .love: return "heart.fill"
+        case .neutral: return "circle.fill"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .joy: return .yellow
+        case .sad: return .blue
+        case .calm: return .teal
+        case .angry: return .red
+        case .surprise: return .purple
+        case .fear: return .orange
+        case .love: return .pink
+        case .neutral: return .gray
+        }
+    }
 }
 
 struct tabview_words{
