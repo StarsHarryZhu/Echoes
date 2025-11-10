@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var showSettings = false
+    @State private var show_settings = false
     @State private var selected = 0
-    private let disabledTab = 1
+    private let disabled_tab = 1
 
     var body: some View {
         NavigationStack {
@@ -30,7 +30,7 @@ struct ContentView: View {
                         .tag(2)
                 }
                 .onChange(of: selected) { old, new in
-                    if new == disabledTab { selected = old }
+                    if new == disabled_tab { selected = old }
                 }
 
                 // 中间悬浮相机按钮
@@ -55,7 +55,9 @@ struct ContentView: View {
                             .foregroundStyle(.primary)
 
                         Text("Echoes")
-                            .font(.title2)
+                            .modifier(text_style(
+                                size: 25,
+                            ))
                             .bold()
 
                         Spacer(minLength: 0)
@@ -65,7 +67,7 @@ struct ContentView: View {
 
                 // 右侧齿轮按钮
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSettings = true } label: {
+                    Button { show_settings = true } label: {
                         Image(systemName: "gearshape")
                             .imageScale(.large)
                     }
@@ -74,14 +76,14 @@ struct ContentView: View {
             }
 
             // ✅ 全屏设置页
-            .fullScreenCover(isPresented: $showSettings) {
+            .fullScreenCover(isPresented: $show_settings) {
                 NavigationStack {
                     SettingsView()
                         .navigationTitle("Settings")
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
-                                Button("Done") { showSettings = false }
+                                Button("Done") { show_settings = false }
                                     .bold()
                             }
                         }
@@ -93,4 +95,6 @@ struct ContentView: View {
     }
 }
 
-#Preview { ContentView() }
+#Preview {
+    ContentView()
+}
