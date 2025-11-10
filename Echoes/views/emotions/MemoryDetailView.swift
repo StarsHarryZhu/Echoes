@@ -63,18 +63,4 @@ struct MemoryDetailView: View {
             }
         }
     }
-
-    // MARK: - Helpers
-    private func cover_image(of memory: emotion_memory) -> Image {
-        if let n = memory.cover, UIImage(named: n) != nil {
-            return Image(n)
-        }
-        return Image(systemName: "photo.on.rectangle.angled")
-    }
-
-    private func formattedDate(_ date: Date) -> String {
-        let f = DateFormatter()
-        f.dateFormat = "yy/MM/dd" // 格式如：25/11/10
-        return f.string(from: date)
-    }
 }

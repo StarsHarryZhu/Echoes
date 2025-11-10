@@ -42,6 +42,14 @@ enum emotion: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
+struct emotion_memory: Identifiable, Hashable {
+    let id = UUID()
+    let title: String
+    let date: Date
+    let cover: String?
+    let emotion: emotion
+}
+
 struct tabview_words{
     static let home = "Home"
     static let emotion = "Emotions"
@@ -75,4 +83,6 @@ let intro_text: String =
 """
 Echoes is built by a small team who believe photos are more than pixels — they’re emotions and stories. We design calm, human-centered tools that help you capture feelings and revisit memories with care.
 """
+
+
 let rate_us_text: String = "If you like Echoes, a 5-star rating really helps! ✨"

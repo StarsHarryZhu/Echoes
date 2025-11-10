@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-func alert(_ message: String, _ title: String = "Crashed!") {
+func alert(_ message: String, _ title: String = "Echoes") {
     
     DispatchQueue.main.async {
         
