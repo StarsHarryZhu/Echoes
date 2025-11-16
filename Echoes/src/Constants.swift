@@ -11,33 +11,37 @@ import UIKit
 import SwiftUI
 
 enum emotion: String, CaseIterable, Identifiable, Hashable {
-    case joy = "Joy", sad = "Sad", calm = "Calm", angry = "Angry",
-         surprise = "Surprise", fear = "Fear", love = "Love", neutral = "Neutral"
+    case angry = "Angry"
+    case disgust = "Disgust"
+    case fear = "Fear"
+    case happy = "Happy"
+    case neutral = "Neutral"
+    case sad = "Sad"
+    case surprise = "Surprise"
+
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .joy: return "sun.max.fill"
-        case .sad: return "cloud.rain.fill"
-        case .calm: return "leaf.fill"
         case .angry: return "flame.fill"
-        case .surprise: return "sparkles"
+        case .disgust: return "leaf.circle.fill"   // 可随便换，你自己选图标
         case .fear: return "exclamationmark.triangle.fill"
-        case .love: return "heart.fill"
+        case .happy: return "sun.max.fill"
         case .neutral: return "circle.fill"
+        case .sad: return "cloud.rain.fill"
+        case .surprise: return "sparkles"
         }
     }
 
     var tint: Color {
         switch self {
-        case .joy: return .yellow
-        case .sad: return .blue
-        case .calm: return .teal
         case .angry: return .red
-        case .surprise: return .purple
+        case .disgust: return .green
         case .fear: return .orange
-        case .love: return .pink
+        case .happy: return .yellow
         case .neutral: return .gray
+        case .sad: return .blue
+        case .surprise: return .purple
         }
     }
 }

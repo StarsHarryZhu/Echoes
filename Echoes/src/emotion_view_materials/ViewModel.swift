@@ -11,7 +11,15 @@ import Combine
 
 final class emotions_view_model: ObservableObject {
     @Published var all: [emotion_memory] = {
-        let es: [emotion] = [.joy,.sad,.calm,.angry,.surprise,.fear,.love,.neutral]
+        let es: [emotion] = [
+            .angry,
+            .disgust,
+            .fear,
+            .happy,
+            .neutral,
+            .sad,
+            .surprise
+        ]
         return (0..<24).map { i in
             // 造一些不同日期
             emotion_memory(title: "Memory \(i+1)",
