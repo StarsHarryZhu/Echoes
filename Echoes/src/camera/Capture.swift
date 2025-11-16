@@ -11,7 +11,7 @@ import UIKit
 @MainActor
 func capture() async {
     
-    let img = UIImage(named: "sample1")
+    let img = UIImage(named: "sample4")
     if let (emotion, _) = emotion_service.shared.predict(from: img!) {
         alert(emotion)
     }
