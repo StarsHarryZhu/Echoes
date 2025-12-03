@@ -31,7 +31,7 @@ struct MemoryDetailView: View {
                 .padding(.horizontal)
 
                 // 日期：25/11/10
-                Text(formattedDate(memory.date))
+                Text(formatted_date(memory.date))
                     .modifier(text_style(size: date_size))
                     .bold()
 

@@ -25,7 +25,7 @@ func capture() async {
         
         switch result{
         case .success(let emotion_pack):
-            save(emotion_pack)
+            save(emotionPack: emotion_pack)
         case .fail:
             alert("fail to get emotion")
         }

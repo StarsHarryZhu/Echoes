@@ -23,7 +23,6 @@ struct EmotionGridItem: View {
                     .strokeBorder(.white.opacity(0.18), lineWidth: 1))
                 .shadow(radius: 6, y: 3)
 
-            // 白色数字徽章
             Text("\(count)")
                 .font(.caption).bold()
 //                .modifier(text_style(

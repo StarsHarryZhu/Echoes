@@ -20,6 +20,12 @@ func emotion_detect(from image: UIImage) -> emotion_return {
             if face == nil {
                 alert("Fail to detecting face")
             } else {
+                guard let result = emotion_service.shared.predict(from: image) else {
+                    return .fail("Fail to detect emotion")
+                }
+                let (emotion, confidence) = result;
+                let date = Date();
+                
                 
             }
         

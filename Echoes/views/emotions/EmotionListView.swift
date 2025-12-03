@@ -16,7 +16,7 @@ struct EmotionListView: View {
     
     var body: some View {
         ScrollView {
-            // 彩色 Header
+
             HStack {
                 Image(systemName: emotion.icon)
                 Text(emotion.rawValue)
@@ -42,7 +42,7 @@ struct EmotionListView: View {
                             .frame(height: 150).clipped()
                             .overlay(alignment: .bottomLeading) {
                                 // 显示日期：yyMMdd（例：251108）
-                                Text(formattedDate(m.date))
+                                Text(formatted_date(m.date))
                                     .modifier(text_style(
                                         size: date_size
                                     ))
@@ -60,10 +60,12 @@ struct EmotionListView: View {
             }
             .padding(.horizontal).padding(.top, 12)
         }
-        // 系统导航标题（用于返回栏与可访问性）
+
+        
         .navigationTitle(emotion.rawValue)
         .navigationBarTitleDisplayMode(.inline)
-        // ✅ 使用 principal 自定义“Calm / Joy …”标题（自定义字体 + 图标）
+
+        
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack(spacing: 8) {

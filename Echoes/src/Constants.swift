@@ -24,7 +24,7 @@ enum emotion: String, CaseIterable, Identifiable, Hashable {
     var icon: String {
         switch self {
         case .angry: return "flame.fill"
-        case .disgust: return "leaf.circle.fill"   // 可随便换，你自己选图标
+        case .disgust: return "leaf.circle.fill"
         case .fear: return "exclamationmark.triangle.fill"
         case .happy: return "sun.max.fill"
         case .neutral: return "circle.fill"
@@ -47,10 +47,9 @@ enum emotion: String, CaseIterable, Identifiable, Hashable {
 }
 
 struct emotion_memory: Identifiable, Hashable {
-    let id = UUID()
-    let title: String
+    let id = UUID()// id auto generated
     let date: Date
-    let cover: String?
+    let cover: String?// image 
     let emotion: emotion
 }
 

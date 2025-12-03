@@ -17,7 +17,7 @@ enum face_return{
 func detect_face(in image: UIImage) -> face_return{
     
     guard let cgImage = image.cgImage else {
-        return .fail("❌ 无法从 UIImage 获取 CGImage")
+        return .fail("无法从 UIImage 获取 CGImage")
     }
     
     var detected_face: VNFaceObservation? = nil
@@ -49,7 +49,7 @@ func detect_face(in image: UIImage) -> face_return{
     do {
         try handler.perform([request])
     } catch {
-        return .fail("❌ Vision 请求执行失败:")
+        return .fail("Vision 请求执行失败:")
     }
     
     return .success(detected_face)

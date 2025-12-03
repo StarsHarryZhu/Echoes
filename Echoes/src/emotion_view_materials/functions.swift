@@ -15,7 +15,7 @@ func cover_image(of m: emotion_memory) -> Image {
     return Image(systemName: "photo.on.rectangle.angled")
 }
 
-func formattedDate(_ date: Date) -> String {
+func formatted_date(_ date: Date) -> String {
     let f = DateFormatter()
     f.dateFormat = "yy/MM/dd"
     return f.string(from: date)

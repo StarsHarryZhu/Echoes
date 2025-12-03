@@ -21,9 +21,7 @@ final class emotions_view_model: ObservableObject {
             .surprise
         ]
         return (0..<24).map { i in
-            // 造一些不同日期
-            emotion_memory(title: "Memory \(i+1)",
-                          date: .now.addingTimeInterval(Double(-i * 86_400)),
+            emotion_memory(date: .now.addingTimeInterval(Double(-i * 86_400)),
                           cover: nil,
                           emotion: es[i % es.count])
         }
