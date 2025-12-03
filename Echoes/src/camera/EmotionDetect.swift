@@ -23,9 +23,17 @@ func emotion_detect(from image: UIImage) -> emotion_return {
                 guard let result = emotion_service.shared.predict(from: image) else {
                     return .fail("Fail to detect emotion")
                 }
-                let (emotion, confidence) = result;
+                let (emotion_string, _) = result;
+                let id = UUID();
                 let date = Date();
-                
+                let image_path = save_image(id.uuidString, image);
+                let emotion = emotion(rawValue: emotion_string) ?? .neutral;
+                return .success(emotion_memory(
+                    id: id,
+                    date: date,
+                    cover: image_path,
+                    emotion: emotion,
+                ))
                 
             }
         

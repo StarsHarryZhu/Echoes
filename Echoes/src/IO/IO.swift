@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import Combine
 
 
@@ -49,3 +50,21 @@ final class local_IO: ObservableObject {
         }
     }
 }
+
+func save_image(_ filename: String, _ image: UIImage) -> String? {
+    guard let data = image.jpegData(compressionQuality: 1.0) else {
+        return nil
+    }
+
+    let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent(filename + ".jpg")
+
+    do {
+        try data.write(to: url)
+        return url.path
+    } catch {
+//        alert("cannot save image")
+        return nil
+    }
+}
+

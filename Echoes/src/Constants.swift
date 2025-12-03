@@ -52,7 +52,7 @@ struct emotion_memory: Identifiable, Hashable, Codable {
     let cover: String?
     let emotion: emotion
     
-    init(id: UUID = UUID(),
+    init(id: UUID,
          date: Date,
          cover: String?,
          emotion: emotion) {
