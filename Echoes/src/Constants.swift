@@ -10,7 +10,7 @@ import Combine
 import UIKit
 import SwiftUI
 
-enum emotion: String, CaseIterable, Identifiable, Hashable {
+enum emotion: String, Codable, CaseIterable, Identifiable, Hashable {
     case angry = "Angry"
     case disgust = "Disgust"
     case fear = "Fear"
@@ -46,11 +46,21 @@ enum emotion: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct emotion_memory: Identifiable, Hashable {
-    let id = UUID()// id auto generated
+struct emotion_memory: Identifiable, Hashable, Codable {
+    let id: UUID
     let date: Date
-    let cover: String?// image 
+    let cover: String?
     let emotion: emotion
+    
+    init(id: UUID = UUID(),
+         date: Date,
+         cover: String?,
+         emotion: emotion) {
+            self.id = id
+            self.date = date
+            self.cover = cover
+            self.emotion = emotion
+         }
 }
 
 struct tabview_words{

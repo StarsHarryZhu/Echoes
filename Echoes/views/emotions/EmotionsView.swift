@@ -9,7 +9,6 @@ import SwiftUI
 import Combine
 
 struct EmotionsView: View {
-    @StateObject private var vm = emotions_view_model()
     private let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
@@ -17,7 +16,7 @@ struct EmotionsView: View {
             ScrollView {
                 LazyVGrid(columns: cols, spacing: 12) {
                     ForEach(emotion.allCases) { emo in
-                        let count = vm.items(for: emo).count
+                        let count = local_IO.local_io.items(for: emo).count
                         NavigationLink(value: emo) {
                             EmotionGridItem(emotion: emo, count: count)   // 右上角仅数字徽章（白色）
                         }
@@ -28,7 +27,7 @@ struct EmotionsView: View {
             }
             .navigationTitle("Emotion Album")
             .navigationDestination(for: emotion.self) { emo in
-                EmotionListView(emotion: emo, items: vm.items(for: emo))
+                EmotionListView(emotion: emo, items: local_IO.local_io.items(for: emo))
             }
             .navigationDestination(for: emotion_memory.self) { m in
                 MemoryDetailView(memory: m)

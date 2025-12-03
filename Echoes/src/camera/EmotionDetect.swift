@@ -30,7 +30,7 @@ func emotion_detect(from image: UIImage) -> emotion_return {
             }
         
         case .fail(let message):
-            alert(message)
+        return .fail(message)
         
     }
     return .fail("Not implemented")

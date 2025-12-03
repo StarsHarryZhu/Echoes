@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 @MainActor
-func capture() async {
+func capture() async{
     
 //    let img = UIImage(named: "sample4")
 //    if let (emotion, _) = emotion_service.shared.predict(from: img!) {
@@ -25,7 +25,7 @@ func capture() async {
         
         switch result{
         case .success(let emotion_pack):
-            save(emotionPack: emotion_pack)
+            local_IO.local_io.add_memory(emotion_pack);
         case .fail:
             alert("fail to get emotion")
         }
