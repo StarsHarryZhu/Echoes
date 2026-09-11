@@ -30,7 +30,6 @@ private let expectedStrings: [(key: String, english: String)] = [
     // tabs / shutter
     ("tab.emotions", "Emotions"),
     ("tab.timeline", "Timeline"),
-    ("tab.capture", "Capture"),
     ("tab.emotions.hint", "Browse by emotion"),
     ("tab.timeline.hint", "Browse by time"),
     ("shutter.label", "Take a photo"),
@@ -271,7 +270,7 @@ struct LocalizationTests {
         let samples: [String] = [
             L10n.ok, L10n.cancel, L10n.delete, L10n.retake, L10n.save, L10n.saving,
             L10n.done, L10n.settings, L10n.somethingWentWrong,
-            L10n.tabEmotions, L10n.tabCapture, L10n.tabTimeline, L10n.tabEmotionsHint, L10n.tabTimelineHint,
+            L10n.tabEmotions, L10n.tabTimeline, L10n.tabEmotionsHint, L10n.tabTimelineHint,
             L10n.shutterLabel, L10n.shutterHint, L10n.shutterAnalyzing,
             L10n.emotionAlbumEmptyTitle, L10n.emotionAlbumEmptyMessage,
             L10n.emotionListEmptyMessage, L10n.emotionAlbumCountLabel(.happy, count: 2),
