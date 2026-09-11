@@ -2,108 +2,123 @@
 //  FeedbackView.swift
 //  Echoes
 //
-//  Created by Harry Zhu on 2025/11/7.
-//
 
 import SwiftUI
+import UIKit
 
-// B) Feedback
+/// 反馈页。
+///
+/// 重构前「Submit」按钮是空的：`submitted = true` 弹一句"Thanks!"，
+/// 但内容根本没发出去。这里做成**真的能送出**：优先打开邮件客户端，
+/// 没有配邮件账号时退回复制到剪贴板，两种结果都给明确提示。
 struct FeedbackView: View {
-    private let button_text_size: CGFloat = 16
-    private let prompt_size: CGFloat = 18
-    
-    let onBack: () -> Void
-    @State private var email: String = ""
-    @State private var subject: String = ""
-    @State private var content: String = ""
+
+    @State private var subject = ""
+    @State private var content = ""
     @State private var includeDiagnostics = true
-    @State private var submitted = false
+    @State private var resultMessage: String?
+
+    private var diagnostics: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        return """
+        ---
+        App: \(AppInfo.name) \(version) (\(build))
+        Device: \(UIDevice.current.model)
+        System: \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)
+        """
+    }
+
+    private var fullBody: String {
+        includeDiagnostics ? content + "\n\n" + diagnostics : content
+    }
+
+    private var canSubmit: Bool {
+        !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     var body: some View {
-        ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+        Form {
+            Section("主题") {
+                TextField("一句话概括", text: $subject)
+            }
 
-            VStack(spacing: 16) {
-                TopBar(title: "Feedback", onTap: onBack)
+            Section("详细描述") {
+                TextEditor(text: $content)
+                    .frame(minHeight: 160)
+            }
 
-                ScrollView {
-                    VStack(spacing: 20) {
+            Section {
+                Toggle("附加设备与版本信息", isOn: $includeDiagnostics)
+            } footer: {
+                Text("有助于我们定位问题。不包含任何照片或表情记录。")
+            }
 
-                        SettingsCard(header: "Contact") {
-                            VStack(spacing: 12) {
-                                TextField("Email (optional)", text: $email)
-                                    .modifier(text_style(
-                                        size: prompt_size,
-                                    ))
-                                    .textInputAutocapitalization(.never)
-                                    .keyboardType(.emailAddress)
-                                    .padding(12)
-                                    .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.quaternaryLabel)))
-                                    .padding(.horizontal, 14)
-                                    .padding(.top, 14)
+            Section {
+                Button {
+                    submit()
+                } label: {
+                    Text("发送反馈")
+                        .appText(16, weight: .semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .disabled(!canSubmit)
 
-                                TextField("Subject", text: $subject)
-                                    .modifier(text_style(
-                                        size: prompt_size,
-                                    ))
-                                    .padding(12)
-                                    .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.quaternaryLabel)))
-                                    .padding(.horizontal, 14)
-                                    .padding(.bottom, 14)
-                            }
-                        }
-                        
-                        .navigationBarBackButtonHidden(true)
-                        .navigationBarTitleDisplayMode(.inline)
-                        
-                        SettingsCard(header: "Message") {
-                            TextEditor(text: $content)
-                                .frame(minHeight: 160)
-                                .padding(12)
-                                .background(Color.white, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.quaternaryLabel)))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 14)
-                        }
-
-                        SettingsCard(header: "Options") {
-                            SettingToggleRow(icon: "wrench.and.screwdriver", iconColor: .black, title: "Include Diagnostics", isOn: $includeDiagnostics)
-                        }
-
-                        Button {
-                            // TODO: 发送到你的服务端 / 邮件
-                            submitted = true
-                        } label: {
-                            Text("Submit")
-                                .modifier(text_style(
-                                    size: button_text_size
-                                ))
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                                .background(.black, in: RoundedRectangle(cornerRadius: 14))
-                                .foregroundStyle(.white)
-                        }
-                        .padding(.horizontal, 16)
-                        .alert("Thanks!", isPresented: $submitted) {
-                            Button("OK", role: .cancel) { onBack() }
-                        } message: {
-                            Text("We’ve received your feedback.")
-                        }
-
-                        Spacer(minLength: 24)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                Button("复制反馈内容") {
+                    UIPasteboard.general.string = fullBody
+                    resultMessage = "已复制到剪贴板。"
+                }
+                .disabled(!canSubmit)
+            } footer: {
+                if let resultMessage {
+                    Text(resultMessage)
                 }
             }
         }
+        .navigationTitle("反馈与建议")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(
+            "反馈",
+            isPresented: Binding(
+                get: { resultMessage != nil },
+                set: { if !$0 { resultMessage = nil } }
+            )
+        ) {
+            Button("好", role: .cancel) { resultMessage = nil }
+        } message: {
+            Text(resultMessage ?? "")
+        }
+    }
+
+    private func submit() {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = AppInfo.feedbackEmail
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: subject.isEmpty ? "Echoes 反馈" : subject),
+            URLQueryItem(name: "body", value: fullBody),
+        ]
+
+        guard let url = components.url else {
+            copyToClipboard(reason: "反馈内容里有非法字符，已复制到剪贴板。")
+            return
+        }
+
+        // iOS 27 起 `canOpenURL` 已弃用，官方建议直接尝试打开并处理失败 ——
+        // 这里照做：打不开就退回复制到剪贴板，不让用户白写一遍。
+        UIApplication.shared.open(url, options: [:]) { opened in
+            guard opened else {
+                copyToClipboard(
+                    reason: "这台设备没有配置邮件客户端，内容已复制到剪贴板，可以粘贴到任意渠道发给我们。"
+                )
+                return
+            }
+            resultMessage = "已打开邮件客户端，点发送就完成了。"
+        }
+    }
+
+    private func copyToClipboard(reason: String) {
+        UIPasteboard.general.string = fullBody
+        resultMessage = reason
     }
 }
-
-
-//#Preview {
-//    FeedbackView()
-//}

@@ -2,87 +2,91 @@
 //  EmotionListView.swift
 //  Echoes
 //
-//  Created by Harry Zhu on 2025/11/9.
-//
 
 import SwiftUI
 
+/// 某个表情下的全部照片。
 struct EmotionListView: View {
-    var name_size: CGFloat = 18
-    var date_size: CGFloat = 14
-    let emotion: emotion
-    let items: [emotion_memory]
-    private let cols = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
-    
+
+    @Environment(MemoryStore.self) private var store
+
+    let emotion: Emotion
+    let onSelect: (Memory) -> Void
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+    ]
+
+    private var items: [Memory] {
+        store.items(for: emotion)
+    }
+
     var body: some View {
-        ScrollView {
-
-            HStack {
-                Image(systemName: emotion.icon)
-                Text(emotion.rawValue)
-                    .modifier(text_style(
-                        size: name_size,
-                    ))
-                    .bold()
-                Spacer()
+        Group {
+            if items.isEmpty {
+                emptyState
+            } else {
+                grid
             }
-            .foregroundStyle(.white)
-            .padding()
-            .background(
-                LinearGradient(colors: [emotion.tint, emotion.tint.opacity(0.6)],
-                               startPoint: .leading, endPoint: .trailing)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .padding(.horizontal)
-            
-            LazyVGrid(columns: cols, spacing: 12) {
-                ForEach(items) { m in
-                    NavigationLink(value: m) {
-                        cover_image(of: m).resizable().scaledToFill()
-                            .frame(height: 150).clipped()
-                            .overlay(alignment: .bottomLeading) {
-                                // 显示日期：yyMMdd（例：251108）
-                                Text(formatted_date(m.date))
-                                    .modifier(text_style(
-                                        size: date_size
-                                    ))
-                                    .bold()
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 6)
-                                    .background(.black.opacity(0.35), in: Capsule())
-                                    .padding(8)
-                            }
-                            .cornerRadius(14)
-                            .shadow(radius: 3, y: 2)
-                    }
-                }
-            }
-            .padding(.horizontal).padding(.top, 12)
         }
-
-        
-        .navigationTitle(emotion.rawValue)
+        .background(Color(.systemGroupedBackground))
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 92) }
+        .navigationTitle(emotion.displayName)
         .navigationBarTitleDisplayMode(.inline)
-
-        
         .toolbar {
             ToolbarItem(placement: .principal) {
-                HStack(spacing: 8) {
-                    Image(systemName: emotion.icon)
-                        .font(.system(size: 20, weight: .semibold))
-                    Text(emotion.rawValue)
-                        .font(.custom(text_info.font, size: 26)).bold()
-                    Spacer(minLength: 0)
+                HStack(spacing: 6) {
+                    Image(systemName: emotion.symbol)
+                        .foregroundStyle(emotion.tint)
+                    Text(emotion.displayName)
+                        .appText(20, weight: .semibold)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
+
+    private var grid: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(items) { memory in
+                    Button {
+                        onSelect(memory)
+                    } label: {
+                        cell(memory)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 12)
+        }
+    }
+
+    private func cell(_ memory: Memory) -> some View {
+        MemoryThumbnail(memory: memory)
+            .frame(height: 150)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(alignment: .bottomLeading) {
+                Text(DateFormatters.short.string(from: memory.capturedAt))
+                    .appText(12, weight: .bold)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(.black.opacity(0.35), in: Capsule())
+                    .padding(8)
+            }
+            .shadow(radius: 3, y: 2)
+            .accessibilityLabel(
+                "\(DateFormatters.full.string(from: memory.capturedAt))，\(emotion.displayName)"
+            )
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("还没有「\(emotion.displayName)」", systemImage: emotion.symbol)
+        } description: {
+            Text("拍下这个表情的照片会自动归到这里。")
+        }
+    }
 }
-
-
-
-//#Preview {
-//    EmotionListView()
-//}

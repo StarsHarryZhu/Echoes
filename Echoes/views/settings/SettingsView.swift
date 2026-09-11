@@ -2,125 +2,181 @@
 //  SettingsView.swift
 //  Echoes
 //
-//  Created by Harry Zhu on 2025/11/7.
-//
 
 import SwiftUI
-import StoreKit // RateUsView 需要
 
-// 二级页路由
-private enum Subpage: Hashable {
-    case about, feedback, rate
-}
-
-// MARK: - 全屏设置页（白底卡片布局）— 采用 push（右进左出）
+/// 设置页。
+///
+/// 重构前这里有三类问题：
+/// 1. `settings` 结构体的每个 setter 都把值**写死成常量**（`set { UserDefaults…set(true, …) }`），
+///    所以开关拨了也存不住；
+/// 2. 「录制模式」「性能设置」「Personal Information」这些行点了完全没反应；
+/// 3. 「清除缓存」永远显示 `0.00MB`，也不做任何事。
+///
+/// 现在只留真正能用的设置项。原来那些为了将来预留的死行已移除 ——
+/// 没有实现的功能不该出现在界面上。
 struct SettingsView: View {
+
+    @Environment(MemoryStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
-    // 示例开关/选项（持久化）
-    @AppStorage("grid")
-        private var grid: Bool = settings.grid
-    @AppStorage("gradienter")
-        private var gradienter: Bool = settings.gradienter
-    @AppStorage("record_mode")
-        private var record_mode: Int = settings.record_mode
-    @AppStorage("cache_size")
-        private var cache_size: String = settings.cache_size
+    @AppStorage(AppPreferenceKey.timelineGranularity)
+    private var granularityRaw: String = TimelineGranularity.automatic.rawValue
 
-    // ✅ push 用的导航路径
-    @State private var path = NavigationPath()
+    /// 默认开。关掉后，检测不到人脸就让用户重拍而不是硬给一个结果。
+    @AppStorage(AppPreferenceKey.faceDetectionFallback)
+    private var faceDetectionFallback: Bool = true
+
+    @State private var diskUsage: Int64?
+    @State private var isClearing = false
+    @State private var clearResult: String?
+
+    private enum Subpage: Hashable {
+        case about
+        case creators
+        case feedback
+        case rate
+    }
+
+    private var granularity: Binding<TimelineGranularity> {
+        Binding(
+            get: { TimelineGranularity(rawValue: granularityRaw) ?? .automatic },
+            set: { granularityRaw = $0.rawValue }
+        )
+    }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            ZStack {
-                Color(.systemBackground).ignoresSafeArea() // 白底
+        List {
+            timelineSection
+            analysisSection
+            storageSection
+            aboutSection
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle("设置")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("完成") { dismiss() }
+                    .fontWeight(.semibold)
+            }
+        }
+        .navigationDestination(for: Subpage.self) { page in
+            switch page {
+            case .about: AboutUsView()
+            case .creators: CreatorsView()
+            case .feedback: FeedbackView()
+            case .rate: RateUsView()
+            }
+        }
+        .task { await refreshDiskUsage() }
+    }
 
-                VStack(spacing: 16) {
-                    // 顶部导航（自定义，居中标题）
-                    TopBar(title: "Settings", icon: "xmark") {
-                        dismiss() // 关闭整个设置页（通常是从 fullScreenCover 弹出的）
-                    }
+    // MARK: - 分区
 
-                    ScrollView {
-                        VStack(spacing: 20) {
-
-                            // MARK: Capture
-                            SettingsCard(header: "Capture") {
-                                SettingToggleRow(icon: "square.grid.3x3", iconColor: .black, title: "Preview Grid", isOn: $grid)
-                                Divider()
-                                SettingToggleRow(icon: "line.diagonal", iconColor: .black, title: "Gradienter", isOn: $gradienter)
-                            }
-
-                            // MARK: 性能
-                            SettingsCard(header: "性能") {
-                                SettingNavRow(icon: "slider.horizontal.3", iconColor: .black, title: "性能设置") {
-                                    // path.append(.performance) // 需要时再加
-                                }
-                            }
-
-                            // MARK: 录制模式
-                            SettingsCard(header: "录制模式") {
-                                SettingNavRow(icon: "cube.box", iconColor: .black, title: "录制模式", detail: record_mode_text) {
-                                    // path.append(.recordMode) // 需要时再加
-                                }
-                            }
-
-                            // MARK: 通用
-                            SettingsCard(header: "General") {
-                                SettingNavRow(icon: "person.badge.plus", iconColor: .black, title: "Personal Infomation") { }
-                                Divider()
-                                SettingValueRow(icon: "trash", iconColor: .red, title: "Clear Cache", value: cache_size) {
-                                    // 执行清理动作后，更新 cacheSizeText
-                                }
-                            }
-
-                            // MARK: About（→ push 子页）
-                            SettingsCard(header: "About") {
-                                SettingNavRow(icon: "info.circle", iconColor: .black, title: "About us") {
-                                    path.append(Subpage.about)
-                                }
-                                Divider()
-                                SettingNavRow(icon: "envelope.badge", iconColor: .black, title: "Feedback and Suggestions") {
-                                    path.append(Subpage.feedback)
-                                }
-                                Divider()
-                                SettingNavRow(icon: "star", iconColor: .black, title: "Go Score") {
-                                    path.append(Subpage.rate)
-                                }
-                            }
-
-                            Spacer(minLength: 24)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
-                    }
+    private var timelineSection: some View {
+        Section {
+            Picker("时间归档分组", selection: granularity) {
+                ForEach(TimelineGranularity.allCases) { option in
+                    Text(option.title).tag(option)
                 }
             }
-            // ✅ 注册子页（右进左出动画）
-            .navigationDestination(for: Subpage.self) { page in
-                switch page {
-                case .about:
-                    AboutUsView(onBack: { path.removeLast() })
-                case .feedback:
-                    FeedbackView(onBack: { path.removeLast() })
-                case .rate:
-                    RateUsView(onBack: { path.removeLast() })
-                }
-            }
-            // 使用自定义 TopBar，隐藏系统导航栏
-            .toolbar(.hidden, for: .navigationBar)
+        } header: {
+            Text("时间归档")
+        } footer: {
+            Text("决定「Timeline」页里照片的分组方式。")
         }
     }
 
-    private var record_mode_text: String {
-        switch record_mode {
-        case 0: return "仅录制原片"
-        default: return "自定义"
+    private var analysisSection: some View {
+        Section {
+            Toggle("检测不到人脸时退回整图识别", isOn: $faceDetectionFallback)
+        } header: {
+            Text("表情识别")
+        } footer: {
+            Text(
+                "开着的时候，即使没检测到人脸也会给一个表情判定（准确率较低，结果会标注「可能不准」）。"
+                + "关掉之后会提示你重拍，要求必须拍到完整人脸。"
+            )
         }
+    }
+
+    private var storageSection: some View {
+        Section {
+            LabeledContent {
+                Text("\(store.memories.count)")
+                    .foregroundStyle(.secondary)
+            } label: {
+                Label("已归档照片", systemImage: "photo.stack")
+            }
+
+            Button {
+                Task { await clearCache() }
+            } label: {
+                HStack {
+                    Label("清除缩略图缓存", systemImage: "trash")
+                    Spacer()
+                    if isClearing {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Text(diskUsage.map(formattedByteCount) ?? "—")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .disabled(isClearing)
+        } header: {
+            Text("存储")
+        } footer: {
+            if let clearResult {
+                Text(clearResult)
+            } else {
+                Text("缩略图会按需重建，原图不受影响。")
+            }
+        }
+    }
+
+    private var aboutSection: some View {
+        Section {
+            NavigationLink(value: Subpage.about) {
+                Label("关于 Echoes", systemImage: "info.circle")
+            }
+            NavigationLink(value: Subpage.creators) {
+                Label("开发团队", systemImage: "person.2")
+            }
+            NavigationLink(value: Subpage.feedback) {
+                Label("反馈与建议", systemImage: "envelope")
+            }
+            NavigationLink(value: Subpage.rate) {
+                Label("给我们评分", systemImage: "star")
+            }
+        } header: {
+            Text("关于")
+        }
+    }
+
+    // MARK: - 动作
+
+    private func refreshDiskUsage() async {
+        diskUsage = await store.diskUsage()
+    }
+
+    private func clearCache() async {
+        isClearing = true
+        defer { isClearing = false }
+
+        let freed = await store.clearThumbnailCache()
+        await refreshDiskUsage()
+
+        clearResult = freed > 0
+            ? "已释放 \(formattedByteCount(freed))。"
+            : "没有可清理的缓存。"
     }
 }
 
-
 #Preview {
-    SettingsView()
+    let store = MemoryStore()
+    return NavigationStack {
+        SettingsView().environment(store)
+    }
 }
