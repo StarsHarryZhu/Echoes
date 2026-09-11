@@ -170,4 +170,80 @@ struct MemoryCodingTests {
         let decoded = try Self.makeDecoder().decode([Emotion: Float].self, from: data)
         #expect(decoded == scores)
     }
+
+    // MARK: - 概率分布的磁盘格式
+
+    /// 直接 `encode([Emotion: Float])` 时，因为 `Emotion` 不是 `String`/`Int`，
+    /// Swift 会写出**扁平交错数组** `["Happy", 0.9, "Sad", 0.1]` —— 能读回来，
+    /// 但人不可读、外部工具也解析不了。这里守住它必须是 JSON 对象。
+    @Test("概率分布写成 JSON 对象，而不是扁平交错数组")
+    func scoresEncodedAsObject() throws {
+        let memory = Memory(
+            capturedAt: Self.fixedDate,
+            filename: "S.jpg",
+            emotion: .happy,
+            confidence: 0.8,
+            scores: [.happy: 0.8, .sad: 0.2]
+        )
+
+        let data = try Self.makeEncoder().encode([memory])
+        let json = try #require(String(data: data, encoding: .utf8))
+
+        #expect(json.contains("\"Happy\" : 0.8"), "概率分布应该是 {键: 值} 的对象\n\(json)")
+        #expect(json.contains("\"Sad\" : 0.2"))
+        // 扁平数组的特征：字符串键后面直接跟数字，中间没有冒号
+        #expect(!json.contains("\"Happy\", \\n"), "不应出现扁平交错数组\n\(json)")
+    }
+
+    @Test("对象格式的概率分布能读回并还原成 Emotion 键")
+    func scoresObjectRoundTrip() throws {
+        let scores: [Emotion: Float] = [.fear: 0.55, .neutral: 0.3, .angry: 0.15]
+        let memory = Memory(
+            capturedAt: Self.fixedDate,
+            filename: "S.jpg",
+            emotion: .fear,
+            confidence: 0.55,
+            scores: scores
+        )
+
+        let data = try Self.makeEncoder().encode([memory])
+        let decoded = try Self.makeDecoder().decode([Memory].self, from: data)
+        #expect(decoded.first?.scores == scores)
+    }
+
+    @Test("兼容早期写出的扁平交错数组格式")
+    func decodesLegacyFlatScores() throws {
+        let json = """
+        [{
+          "id" : "3F2504E0-4F89-11D3-9A0C-0305E82C3306",
+          "capturedAt" : "2026-08-15T09:30:00Z",
+          "filename" : "F.jpg",
+          "emotion" : "Happy",
+          "confidence" : 0.9,
+          "scores" : ["Happy", 0.9, "Sad", 0.1]
+        }]
+        """
+        let data = try #require(json.data(using: .utf8))
+        let decoded = try Self.makeDecoder().decode([Memory].self, from: data)
+
+        let scores = try #require(decoded.first?.scores)
+        #expect(scores[.happy] == 0.9)
+        #expect(scores[.sad] == 0.1)
+    }
+
+    @Test("旧记录没有 confidence 时，从概率分布里补一个")
+    func missingConfidenceFallsBackToScores() throws {
+        let json = """
+        [{
+          "id" : "3F2504E0-4F89-11D3-9A0C-0305E82C3307",
+          "capturedAt" : "2026-08-15T09:30:00Z",
+          "filename" : "G.jpg",
+          "emotion" : "Happy",
+          "scores" : { "Happy" : 0.62, "Sad" : 0.38 }
+        }]
+        """
+        let data = try #require(json.data(using: .utf8))
+        let decoded = try Self.makeDecoder().decode([Memory].self, from: data)
+        #expect(decoded.first?.confidence == 0.62)
+    }
 }

@@ -110,8 +110,12 @@ nonisolated extension Memory {
         }
         emotion = parsed
 
-        confidence = try container.decodeIfPresent(Float.self, forKey: .confidence) ?? 0
-        scores = try container.decodeIfPresent([Emotion: Float].self, forKey: .scores)
+        let decodedScores = try Self.decodeScores(from: container)
+        scores = decodedScores
+        // 旧记录没有 confidence：能从事后算出来的概率分布里补一个，否则记 0。
+        confidence = try container.decodeIfPresent(Float.self, forKey: .confidence)
+            ?? decodedScores?.values.max()
+            ?? 0
         pixelSize = try container.decodeIfPresent(CGSize.self, forKey: .pixelSize)
         thumbnailFilename = try container.decodeIfPresent(String.self, forKey: .thumbnailFilename)
     }
@@ -126,7 +130,77 @@ nonisolated extension Memory {
         try container.encodeIfPresent(pixelSize, forKey: .pixelSize)
         try container.encode(emotion, forKey: .emotion)
         try container.encode(confidence, forKey: .confidence)
-        try container.encodeIfPresent(scores, forKey: .scores)
+        try Self.encodeScores(scores, into: &container)
         try container.encodeIfPresent(thumbnailFilename, forKey: .thumbnailFilename)
+    }
+
+    /// 概率分布编码成 `{"Happy": 0.9, ...}` 这样的**对象**。
+    ///
+    /// 直接 `encode([Emotion: Float])` 的话，因为 `Emotion` 不是 `String`/`Int`，
+    /// Swift 会退化成扁平的交错数组（`["Happy", 0.9, "Sad", 0.1, …]`）——
+    /// 能读回来，但人不可读、别的工具也解析不了。
+    private static func encodeScores(
+        _ scores: [Emotion: Float]?,
+        into container: inout KeyedEncodingContainer<CodingKeys>
+    ) throws {
+        guard let scores else { return }
+        let keyed = scores.reduce(into: [String: Float]()) { result, pair in
+            result[pair.key.rawValue] = pair.value
+        }
+        try container.encode(keyed, forKey: .scores)
+    }
+
+    /// 解码概率分布。先探测 `scores` 的容器类型，再按对应格式解析。
+    ///
+    /// 不能用 `try? decodeIfPresent([String: Float].self, ...)` 去"猜"格式：
+    /// 类型不匹配的失败和"字段根本不存在"都会变成 nil，分不清该走哪条路 ——
+    /// 第一版就是这么写的，结果旧的扁平数组被静默丢成 nil。
+    private static func decodeScores(
+        from container: KeyedDecodingContainer<CodingKeys>
+    ) throws -> [Emotion: Float]? {
+        guard container.contains(.scores), try !container.decodeNil(forKey: .scores) else {
+            return nil
+        }
+
+        var scores: [Emotion: Float] = [:]
+
+        if let keyed = try? container.nestedContainer(keyedBy: AnyCodingKey.self, forKey: .scores) {
+            // 新格式：{ "Happy": 0.9, "Sad": 0.1 }
+            for key in keyed.allKeys {
+                guard let emotion = Emotion(modelLabel: key.stringValue),
+                      let value = try? keyed.decode(Float.self, forKey: key) else {
+                    continue
+                }
+                scores[emotion] = value
+            }
+        } else if var flat = try? container.nestedUnkeyedContainer(forKey: .scores) {
+            // 早期格式：["Happy", 0.9, "Sad", 0.1]
+            while !flat.isAtEnd {
+                guard let label = try? flat.decode(String.self),
+                      let value = try? flat.decode(Float.self),
+                      let emotion = Emotion(modelLabel: label) else {
+                    break
+                }
+                scores[emotion] = value
+            }
+        }
+
+        return scores.isEmpty ? nil : scores
+    }
+}
+
+/// 解码概率分布时用的通用键 —— 键来自 `Emotion.rawValue`，编译期未知。
+private nonisolated struct AnyCodingKey: CodingKey {
+    let stringValue: String
+    let intValue: Int?
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+        self.intValue = nil
+    }
+
+    init?(intValue: Int) {
+        self.stringValue = String(intValue)
+        self.intValue = intValue
     }
 }
