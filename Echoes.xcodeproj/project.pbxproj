@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		E23BAE292EBDC92E008CDA1C /* Echoes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Echoes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		47D89A467242412F9EB4D190 /* EchoesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EchoesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -21,6 +22,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		DD0BD5D093804E11852423D4 /* EchoesTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = EchoesTests;
+			sourceTree = "<group>";
+		};
 		E23BAE2B2EBDC92E008CDA1C /* Echoes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -39,6 +45,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8068C0389912452894EDCD3D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -46,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				E23BAE2B2EBDC92E008CDA1C /* Echoes */,
+				DD0BD5D093804E11852423D4 /* EchoesTests */,
 				E23BAE2A2EBDC92E008CDA1C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				E23BAE292EBDC92E008CDA1C /* Echoes.app */,
+				47D89A467242412F9EB4D190 /* EchoesTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +98,29 @@
 			productReference = E23BAE292EBDC92E008CDA1C /* Echoes.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D1CE175B3AEA442BADD4283C /* EchoesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8023B35782C04DEE971DE188 /* Build configuration list for PBXNativeTarget "EchoesTests" */;
+			buildPhases = (
+				ACA960FDCB124A88BB881349 /* Sources */,
+				8068C0389912452894EDCD3D /* Frameworks */,
+				F15A09641D824A4096815258 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				40B056FA59394BCDBC784732 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DD0BD5D093804E11852423D4 /* EchoesTests */,
+			);
+			name = EchoesTests;
+			packageProductDependencies = (
+			);
+			productName = EchoesTests;
+			productReference = 47D89A467242412F9EB4D190 /* EchoesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -90,8 +128,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					E23BAE282EBDC92E008CDA1C = {
 						CreatedOnToolsVersion = 26.1;
@@ -113,12 +151,20 @@
 			projectRoot = "";
 			targets = (
 				E23BAE282EBDC92E008CDA1C /* Echoes */,
+				D1CE175B3AEA442BADD4283C /* EchoesTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		E23BAE272EBDC92E008CDA1C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F15A09641D824A4096815258 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +181,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ACA960FDCB124A88BB881349 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		71ED4FFEC06B404787CA3B36 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E23BAE212EBDC92E008CDA1C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E23BAE282EBDC92E008CDA1C;
+			remoteInfo = Echoes;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		40B056FA59394BCDBC784732 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E23BAE282EBDC92E008CDA1C /* Echoes */;
+			targetProxy = 71ED4FFEC06B404787CA3B36 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E23BAE322EBDC92F008CDA1C /* Debug */ = {
@@ -190,7 +261,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -247,7 +318,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -268,14 +339,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Echoes/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "requires camera";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "requires photo library";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Echoes 需要使用前置相机为你拍照，并识别拍摄当时的表情。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -304,14 +374,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Echoes/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "requires camera";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "requires photo library";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Echoes 需要使用前置相机为你拍照，并识别拍摄当时的表情。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -326,6 +395,38 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F489D977B8C94CBC9AA19CD1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Echoesone.EchoesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Echoes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Echoes";
+			};
+			name = Debug;
+		};
+		695070214452475395D2432D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Echoesone.EchoesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Echoes.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Echoes";
 			};
 			name = Release;
 		};
@@ -346,6 +447,15 @@
 			buildConfigurations = (
 				E23BAE352EBDC92F008CDA1C /* Debug */,
 				E23BAE362EBDC92F008CDA1C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8023B35782C04DEE971DE188 /* Build configuration list for PBXNativeTarget "EchoesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F489D977B8C94CBC9AA19CD1 /* Debug */,
+				695070214452475395D2432D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
