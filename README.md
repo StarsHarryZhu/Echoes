@@ -4,7 +4,8 @@
 
 前置相机拍照 → 检测人脸 → 识别表情 → 归档。
 
-底部 tab 栏左侧按表情归档、右侧按时间归档，中间悬浮一个大圆拍照键。
+底部 tab 栏左侧按表情归档、右侧按时间归档；拍照键做成 tab 栏配件（TabView bottom
+accessory），坐落于 tab 栏中央、不遮挡任何 tab。
 
 ## 环境要求
 
@@ -51,19 +52,41 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
 
 - `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本月/更早
 - `-uiStartSection emotions|timeline`：直接打开指定的归档 tab
+- `-uiShowSettings`：直接打开设置页
 
-这两个参数只在 DEBUG 编译里存在。
+这些参数只在 DEBUG 编译里存在。
+
+## 语言
+
+界面以**英文为源语言**，同时提供简体中文，可在「设置 → 语言」里随时切换，
+**立即生效、不需要重启**。
+
+实现要点：
+
+- 文案集中在 `Echoes/Localizable.xcstrings`（String Catalog），键是稳定标识符
+  （`settings.cache.clear`）而不是英文原文，改英文措辞不会破坏已有翻译。
+- 所有取值都走 `L10n`（`Echoes/Domain/L10n.swift`），英文写死在代码里作为兜底，
+  即使某个键漏了翻译也只会退化成英文，不会显示成 `settings.cache.clear`。
+- 切换语言靠**自己定位对应的 `.lproj` bundle**（`LanguageManager`），
+  而不是改 `AppleLanguages` —— 后者必须重启才生效。
+- 切换时 `EchoesApp` 换掉根视图的 `id` 重建整棵视图树，因为 SwiftUI 不会
+  因为字符串表变了就重新求值已经算过的 `Text`。
+- 日期与数字格式也跟着界面语言走（`DateFormatters` 按语言缓存 formatter）。
+
+新增语言只需：加一个 `<lang>.lproj` / 在 `Localizable.xcstrings` 里补一列，
+再把语言加进 `AppLanguage`。
 
 ## 目录结构
 
 ```
 Echoes/
-  Domain/      纯数据类型：Emotion、Memory、AppInfo、时间分组算法
+  Domain/      纯数据类型：Emotion、Memory、AppInfo、L10n、语言管理、时间分组算法
   Storage/     磁盘：MemoryStore、ImageStore、MemoryManifest、MemoryMigrator、缩略图缓存
   Capture/     相机与流程编排：CameraController、CaptureCoordinator
   Analysis/    识别：EmotionAnalyzer（Vision + CoreML）、EmotionReport
   Design/      字体、格式化、通用控件
   views/       界面
+Localizable.xcstrings   中英文文案（String Catalog）
 EchoesTests/   Swift Testing 测试套件
 ```
 

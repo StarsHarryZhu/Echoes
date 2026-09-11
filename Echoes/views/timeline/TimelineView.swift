@@ -41,22 +41,22 @@ struct TimelineView: View {
         .background(Color(.systemGroupedBackground))
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
         .confirmationDialog(
-            "删除这条记录？",
+            L10n.timelineDeleteConfirmTitle,
             isPresented: Binding(
                 get: { pendingDeletion != nil },
                 set: { if !$0 { pendingDeletion = nil } }
             ),
             titleVisibility: .visible
         ) {
-            Button("删除", role: .destructive) {
+            Button(L10n.delete, role: .destructive) {
                 if let memory = pendingDeletion {
                     Task { try? await store.delete(memory) }
                 }
                 pendingDeletion = nil
             }
-            Button("取消", role: .cancel) { pendingDeletion = nil }
+            Button(L10n.cancel, role: .cancel) { pendingDeletion = nil }
         } message: {
-            Text("照片和记录都会被删掉，无法恢复。")
+            Text(L10n.timelineDeleteConfirmMessage)
         }
     }
 
@@ -78,7 +78,7 @@ struct TimelineView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
-                                    Button("删除", systemImage: "trash", role: .destructive) {
+                                    Button(L10n.delete, systemImage: "trash", role: .destructive) {
                                         pendingDeletion = memory
                                     }
                                 }
@@ -95,7 +95,7 @@ struct TimelineView: View {
     }
 
     private var granularityPicker: some View {
-        Picker("分组", selection: $granularityRaw) {
+        Picker(L10n.timelineGroupLabel, selection: $granularityRaw) {
             ForEach(TimelineGranularity.allCases) { option in
                 Text(option.title).tag(option.rawValue)
             }
@@ -123,9 +123,9 @@ struct TimelineView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("还没有记录", systemImage: "camera")
+            Label(L10n.timelineEmptyTitle, systemImage: "camera")
         } description: {
-            Text("点下面的圆形按钮，拍下此刻的表情。")
+            Text(L10n.timelineEmptyMessage)
         }
     }
 }
@@ -183,7 +183,7 @@ struct StartupErrorView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("归档载入失败", systemImage: "exclamationmark.triangle")
+            Label(L10n.startupFailedTitle, systemImage: "exclamationmark.triangle")
         } description: {
             Text(message)
         }

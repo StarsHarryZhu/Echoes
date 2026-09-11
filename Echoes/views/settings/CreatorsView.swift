@@ -15,19 +15,19 @@ struct CreatorsView: View {
 
     var body: some View {
         List {
-            Section("团队") {
+            Section(L10n.creatorsSectionTeam) {
                 ForEach(Self.members, id: \.name) { member in
                     row(name: member.name, role: member.role)
                 }
             }
 
-            Section("我们的想法") {
+            Section(L10n.creatorsSectionIdea) {
                 Text(AppCopy.creatorsIntro)
                     .appText(15)
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("开发团队")
+        .navigationTitle(L10n.settingsTeam)
         .navigationBarTitleDisplayMode(.inline)
     }
 

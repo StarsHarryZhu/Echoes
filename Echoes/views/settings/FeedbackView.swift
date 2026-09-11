@@ -39,34 +39,34 @@ struct FeedbackView: View {
 
     var body: some View {
         Form {
-            Section("主题") {
-                TextField("一句话概括", text: $subject)
+            Section(L10n.feedbackSectionSubject) {
+                TextField(L10n.feedbackSubjectPlaceholder, text: $subject)
             }
 
-            Section("详细描述") {
+            Section(L10n.feedbackSectionMessage) {
                 TextEditor(text: $content)
                     .frame(minHeight: 160)
             }
 
             Section {
-                Toggle("附加设备与版本信息", isOn: $includeDiagnostics)
+                Toggle(L10n.feedbackDiagnostics, isOn: $includeDiagnostics)
             } footer: {
-                Text("有助于我们定位问题。不包含任何照片或表情记录。")
+                Text(L10n.feedbackDiagnosticsFooter)
             }
 
             Section {
                 Button {
                     submit()
                 } label: {
-                    Text("发送反馈")
+                    Text(L10n.feedbackSend)
                         .appText(16, weight: .semibold)
                         .frame(maxWidth: .infinity)
                 }
                 .disabled(!canSubmit)
 
-                Button("复制反馈内容") {
+                Button(L10n.feedbackCopy) {
                     UIPasteboard.general.string = fullBody
-                    resultMessage = "已复制到剪贴板。"
+                    resultMessage = L10n.feedbackCopied
                 }
                 .disabled(!canSubmit)
             } footer: {
@@ -75,16 +75,16 @@ struct FeedbackView: View {
                 }
             }
         }
-        .navigationTitle("反馈与建议")
+        .navigationTitle(L10n.feedbackTitle)
         .navigationBarTitleDisplayMode(.inline)
         .alert(
-            "反馈",
+            L10n.feedbackTitle,
             isPresented: Binding(
                 get: { resultMessage != nil },
                 set: { if !$0 { resultMessage = nil } }
             )
         ) {
-            Button("好", role: .cancel) { resultMessage = nil }
+            Button(L10n.ok, role: .cancel) { resultMessage = nil }
         } message: {
             Text(resultMessage ?? "")
         }
@@ -95,12 +95,12 @@ struct FeedbackView: View {
         components.scheme = "mailto"
         components.path = AppInfo.feedbackEmail
         components.queryItems = [
-            URLQueryItem(name: "subject", value: subject.isEmpty ? "Echoes 反馈" : subject),
+            URLQueryItem(name: "subject", value: subject.isEmpty ? L10n.feedbackDefaultSubject : subject),
             URLQueryItem(name: "body", value: fullBody),
         ]
 
         guard let url = components.url else {
-            copyToClipboard(reason: "反馈内容里有非法字符，已复制到剪贴板。")
+            copyToClipboard(reason: L10n.feedbackInvalidContent)
             return
         }
 
@@ -109,11 +109,11 @@ struct FeedbackView: View {
         UIApplication.shared.open(url, options: [:]) { opened in
             guard opened else {
                 copyToClipboard(
-                    reason: "这台设备没有配置邮件客户端，内容已复制到剪贴板，可以粘贴到任意渠道发给我们。"
+                    reason: L10n.feedbackNoMailClient
                 )
                 return
             }
-            resultMessage = "已打开邮件客户端，点发送就完成了。"
+            resultMessage = L10n.feedbackMailOpened
         }
     }
 

@@ -65,7 +65,7 @@ struct TimelineGroupingTests {
             calendar: Self.calendar
         )
 
-        #expect(sections.map(\.title) == ["今天", "昨天", "2025年"])
+        #expect(sections.map(\.bucket) == [.today, .yesterday, .year(2025)])
     }
 
     // MARK: - 自动粒度
@@ -86,8 +86,8 @@ struct TimelineGroupingTests {
             calendar: Self.calendar
         )
 
-        #expect(sections.map(\.title) == [
-            "今天", "昨天", "本周", "本月", "6月", "2025年",
+        #expect(sections.map(\.bucket) == [
+            .today, .yesterday, .thisWeek, .thisMonth, .month(6), .year(2025),
         ])
     }
 
@@ -121,7 +121,7 @@ struct TimelineGroupingTests {
         )
 
         #expect(sections.count == 1)
-        #expect(sections.first?.title == "本月")
+        #expect(sections.first?.bucket == .thisMonth)
         #expect(sections.first?.memories.count == 3)
     }
 
@@ -164,7 +164,11 @@ struct TimelineGroupingTests {
             calendar: Self.calendar
         )
 
-        #expect(sections.map(\.title) == ["2026年9月", "2026年8月", "2025年8月"])
+        #expect(sections.map(\.bucket) == [
+            .calendarMonth(year: 2026, month: 9),
+            .calendarMonth(year: 2026, month: 8),
+            .calendarMonth(year: 2025, month: 8),
+        ])
         #expect(sections[0].memories.count == 2)
     }
 
@@ -183,8 +187,8 @@ struct TimelineGroupingTests {
         )
 
         // 2026 年内但已经过去的月份 → 按月；往年 → 按年。
-        #expect(sections.map(\.title) == ["1月", "2025年"])
-        #expect(sections.map(\.id) == ["year-month-1", "year-2025"])
+        #expect(sections.map(\.bucket) == [.month(1), .year(2025)])
+        #expect(sections.map(\.id) == ["month-1", "year-2025"])
     }
 
     @Test("周一 00:00 属于新的一周")
@@ -200,9 +204,10 @@ struct TimelineGroupingTests {
             calendar: Self.calendar
         )
 
-        #expect(sections.map(\.title) == ["本周", "本月"])
+        #expect(sections.map(\.bucket) == [.thisWeek, .thisMonth])
     }
 
+    /// 分组的身份是 `TimelineBucket`，不是文案 —— 文案会随语言变。
     @Test("分组 id 唯一")
     func sectionIDsAreUnique() {
         let memories = [

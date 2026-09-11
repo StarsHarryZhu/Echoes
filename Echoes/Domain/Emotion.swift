@@ -43,8 +43,10 @@ nonisolated enum Emotion: String, Codable, CaseIterable, Identifiable, Hashable,
         self = match
     }
 
-    /// 展示名。目前与 `rawValue` 一致，单独留出是为了将来接本地化。
-    var displayName: String { rawValue }
+    /// 展示名。跟着界面语言走 —— `rawValue` 是给模型看的，不能拿来显示。
+    var displayName: String {
+        L10n.string("Emotion.\(rawValue.lowercased())", rawValue)
+    }
 
     /// SF Symbol 名称。
     var symbol: String {

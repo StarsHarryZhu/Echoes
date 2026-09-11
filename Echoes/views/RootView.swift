@@ -14,8 +14,8 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
 
     var title: String {
         switch self {
-        case .emotions: return "Emotions"
-        case .timeline: return "Timeline"
+        case .emotions: return L10n.tabEmotions
+        case .timeline: return L10n.tabTimeline
         }
     }
 
@@ -28,8 +28,8 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
 
     var accessibilityHint: String {
         switch self {
-        case .emotions: return "按表情查看归档"
-        case .timeline: return "按时间查看归档"
+        case .emotions: return L10n.tabEmotionsHint
+        case .timeline: return L10n.tabTimelineHint
         }
     }
 }
@@ -57,7 +57,7 @@ struct RootView: View {
 
     @State private var section: RootSection = Self.initialSection
     @State private var path: [RootRoute] = []
-    @State private var isShowingSettings = false
+    @State private var isShowingSettings = Self.opensSettingsAtLaunch
 
     /// 初始归档页。
     ///
@@ -76,21 +76,36 @@ struct RootView: View {
         return .emotions
     }
 
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $section) {
-                Tab(RootSection.emotions.title, systemImage: RootSection.emotions.symbol, value: .emotions) {
-                    browser
-                }
-                Tab(RootSection.timeline.title, systemImage: RootSection.timeline.symbol, value: .timeline) {
-                    browser
-                }
-            }
-            // 点击 tab 当前项时回到列表根，而不是什么都不做。
-            .onChange(of: section) { _, _ in path.removeAll() }
+    /// DEBUG 下 `-uiShowSettings` 直接打开设置页，方便在没有点击能力的环境里截图。
+    private static var opensSettingsAtLaunch: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-uiShowSettings")
+        #else
+        return false
+        #endif
+    }
 
+    var body: some View {
+        TabView(selection: $section) {
+            Tab(RootSection.emotions.title, systemImage: RootSection.emotions.symbol, value: .emotions) {
+                browser
+            }
+            Tab(RootSection.timeline.title, systemImage: RootSection.timeline.symbol, value: .timeline) {
+                browser
+            }
+        }
+        // 拍照键做成 **tab 栏配件**，而不是浮在 tab 栏上面的独立视图。
+        //
+        // 之前是用 ZStack 把圆形按钮压在 tab 栏正中，结果它挡住了 tab 栏。
+        // `tabViewBottomAccessory` 让系统在 tab 栏里给它一块专属位置：
+        // 会自动抬高 tab 栏、不遮挡任何 tab，也不和标签文字打架。
+        .tabViewBottomAccessory {
             shutter
         }
+        // 别让 tab 栏在滚动时收起 —— 收起会让配件的落点变得不可预期。
+        .tabBarMinimizeBehavior(.never)
+        // 切换 tab 时回到列表根，而不是停在上一个 tab 的详情页上。
+        .onChange(of: section) { _, _ in path.removeAll() }
         .fullScreenCover(isPresented: $isShowingSettings) {
             NavigationStack { SettingsView() }
         }
@@ -102,11 +117,11 @@ struct RootView: View {
             }
         }
         .alert(
-            "出错了",
+            L10n.somethingWentWrong,
             isPresented: isShowingFailure,
             presenting: failureMessage
         ) { _ in
-            Button("好", role: .cancel) { capture.clearFailure() }
+            Button(L10n.ok, role: .cancel) { capture.clearFailure() }
         } message: { message in
             Text(message)
         }
@@ -207,19 +222,32 @@ struct RootView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("设置")
+        .accessibilityLabel(L10n.settings)
     }
 
     // MARK: - 快门
 
-    /// 底部中间的大圆拍照键，悬浮在 tab 栏上方。
+    /// tab 栏配件里的拍照键。
     ///
-    /// ZStack 里的底部对齐会被安全区顶到 tab 栏之上，再加一点间距就是最终位置。
+    /// 水平居中放在配件槽里；配件本身由系统摆在 tab 栏中间偏上的专属位置，
+    /// 所以这里不需要再自己算底部间距。
     private var shutter: some View {
-        ShutterButton(isBusy: capture.phase.isBusy) {
+        ShutterButton(
+            isBusy: capture.phase.isBusy,
+            caption: shutterCaption
+        ) {
             Task { await capture.startCapture() }
         }
-        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+    }
+
+    /// 配件上的说明文字，跟着当前阶段走。
+    private var shutterCaption: String? {
+        switch capture.phase {
+        case .analyzing: return L10n.shutterAnalyzing
+        case .saving: return L10n.saving
+        default: return L10n.shutterHint
+        }
     }
 }
 

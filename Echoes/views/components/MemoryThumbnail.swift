@@ -62,7 +62,7 @@ struct MemoryFullImage: View {
                     VStack(spacing: 8) {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.system(size: 32))
-                        Text("照片已丢失")
+                        Text(L10n.memoryPhotoMissing)
                             .appText(14)
                     }
                     .foregroundStyle(.secondary)

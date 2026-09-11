@@ -45,25 +45,25 @@ struct RateUsView: View {
                     // 系统评分弹窗。展示时机由系统决定，不保证每次都出现。
                     requestReview()
                 } label: {
-                    Text("在应用内评分")
+                    Text(L10n.rateInApp)
                         .appText(16, weight: .semibold)
                         .frame(maxWidth: .infinity)
                 }
             } footer: {
-                Text("系统会自行决定是否弹出评分框，没有弹出是正常的。")
+                Text(L10n.rateInAppFooter)
             }
 
             if hasRealAppStoreID, let url = writeReviewURL {
                 Section {
                     Link(destination: url) {
-                        Text("前往 App Store 评价")
+                        Text(L10n.rateAppStore)
                             .appText(16, weight: .semibold)
                             .frame(maxWidth: .infinity)
                     }
                 }
             }
         }
-        .navigationTitle("给我们评分")
+        .navigationTitle(L10n.settingsRate)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

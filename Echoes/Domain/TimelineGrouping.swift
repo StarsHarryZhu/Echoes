@@ -7,7 +7,7 @@ import Foundation
 
 /// 时间归档的分组粒度。
 nonisolated enum TimelineGranularity: String, CaseIterable, Hashable, Identifiable {
-    /// 按"今天 / 昨天 / 本周 / 本月 / 年月 / 年"自动聚合。
+    /// 按"今天 / 昨天 / 本周 / 本月 / 月份 / 年份"自动聚合。
     case automatic
     /// 每天都单独一组。
     case day
@@ -18,54 +18,71 @@ nonisolated enum TimelineGranularity: String, CaseIterable, Hashable, Identifiab
 
     var title: String {
         switch self {
-        case .automatic: return "自动"
-        case .day: return "按天"
-        case .month: return "按月"
+        case .automatic: return L10n.timelineGroupAutomatic
+        case .day: return L10n.timelineGroupDay
+        case .month: return L10n.timelineGroupMonth
         }
     }
 }
 
-/// 时间归档里的一个分组。
-nonisolated struct TimelineSection: Identifiable, Hashable {
-    let id: String
-    let title: String
-    let memories: [Memory]
-}
-
-/// 自动粒度下一个记录所属的时间段。
+/// 一条记录落在哪个时间段。
 ///
-/// 每个 case 对应一个**独立的桶**。这是重构过的一处关键点：
-/// 一开始我直接用分组标题当 key，结果「2026年6月」和「2026年8月」会因为标题
-/// 生成规则不同而互相串组 —— 标题是给人看的，不能当身份用。
-private nonisolated enum AutoBucket {
+/// 这是**分组算法与界面之间的契约**：算法只产出结构化的桶，
+/// 文案由视图层按当前语言渲染。这样分组逻辑保持纯函数、可测，
+/// 换语言时也不用动它。
+nonisolated enum TimelineBucket: Hashable, Sendable {
     case today
     case yesterday
     case thisWeek
     case thisMonth
-    case thisYear(month: Int)
-    case older(year: Int)
+    /// 今年内、但已经过去的月份。
+    case month(Int)
+    /// 往年。
+    case year(Int)
+    /// 按天粒度分组时用的具体日期。
+    case exactDay(year: Int, month: Int, day: Int)
+    /// 按月粒度分组。
+    case calendarMonth(year: Int, month: Int)
 
+    /// 分组身份。**不能拿文案当身份** —— 标题会随语言和粒度变化，
+    /// 早期版本就是拿标题当 key，把不同分组串到了一起。
     var id: String {
         switch self {
         case .today: return "today"
         case .yesterday: return "yesterday"
         case .thisWeek: return "this-week"
         case .thisMonth: return "this-month"
-        case .thisYear(let month): return "year-month-\(month)"
-        case .older(let year): return "year-\(year)"
+        case .month(let month): return "month-\(month)"
+        case .year(let year): return "year-\(year)"
+        case .exactDay(let year, let month, let day): return "day-\(year)-\(month)-\(day)"
+        case .calendarMonth(let year, let month): return "calendar-\(year)-\(month)"
         }
     }
 
+    /// 标题文案，按当前界面语言。
     var title: String {
         switch self {
-        case .today: return "今天"
-        case .yesterday: return "昨天"
-        case .thisWeek: return "本周"
-        case .thisMonth: return "本月"
-        case .thisYear(let month): return "\(month)月"
-        case .older(let year): return "\(year)年"
+        case .today: return L10n.bucketToday
+        case .yesterday: return L10n.bucketYesterday
+        case .thisWeek: return L10n.bucketThisWeek
+        case .thisMonth: return L10n.bucketThisMonth
+        case .month(let month): return L10n.bucketMonth(month)
+        case .year(let year): return L10n.bucketYear(year)
+        case .exactDay(let year, let month, let day):
+            return DateFormatters.dayLabel(year: year, month: month, day: day)
+        case .calendarMonth(let year, let month):
+            return DateFormatters.monthLabel(year: year, month: month)
         }
     }
+}
+
+/// 时间归档里的一个分组。
+nonisolated struct TimelineSection: Identifiable, Hashable {
+    let bucket: TimelineBucket
+    let memories: [Memory]
+
+    var id: String { bucket.id }
+    var title: String { bucket.title }
 }
 
 /// 把归档按时间分组。
@@ -84,38 +101,55 @@ nonisolated func groupTimeline(
     guard !memories.isEmpty else { return [] }
 
     var order: [String] = []
-    var titles: [String: String] = [:]
-    var buckets: [String: [Memory]] = [:]
+    var bucketsByID: [String: TimelineBucket] = [:]
+    var itemsByID: [String: [Memory]] = [:]
 
     for memory in memories {
-        let key: String
-        let title: String
-        switch granularity {
-        case .automatic:
-            let bucket = autoBucket(for: memory.capturedAt, now: now, calendar: calendar)
-            key = bucket.id
-            title = bucket.title
-        case .day:
-            // 用绝对日期而不是相对描述：`relativeDayLabel` 对更早的日期会退化成
-            // "2026年6月"，同月不同日会串成一组。
-            key = "day-\(DateFormatters.short.string(from: memory.capturedAt))"
-            title = relativeDayLabel(for: memory.capturedAt, now: now, calendar: calendar)
-        case .month:
-            key = "month-\(DateFormatters.month(memory.capturedAt))"
-            title = DateFormatters.month(memory.capturedAt)
-        }
+        let bucket = timelineBucket(
+            for: memory.capturedAt,
+            granularity: granularity,
+            now: now,
+            calendar: calendar
+        )
 
-        if buckets[key] == nil {
-            order.append(key)
-            titles[key] = title
-            buckets[key] = []
+        if itemsByID[bucket.id] == nil {
+            order.append(bucket.id)
+            bucketsByID[bucket.id] = bucket
+            itemsByID[bucket.id] = []
         }
-        buckets[key]?.append(memory)
+        itemsByID[bucket.id]?.append(memory)
     }
 
-    return order.compactMap { key in
-        guard let items = buckets[key], let title = titles[key] else { return nil }
-        return TimelineSection(id: key, title: title, memories: items)
+    return order.compactMap { id in
+        guard let bucket = bucketsByID[id], let items = itemsByID[id] else { return nil }
+        return TimelineSection(bucket: bucket, memories: items)
+    }
+}
+
+private nonisolated func timelineBucket(
+    for date: Date,
+    granularity: TimelineGranularity,
+    now: Date,
+    calendar: Calendar
+) -> TimelineBucket {
+    switch granularity {
+    case .automatic:
+        return autoBucket(for: date, now: now, calendar: calendar)
+
+    case .day:
+        // 用绝对日期而不是相对描述：`autoBucket` 对更早的日期会退化成月份，
+        // 同月不同日会串成一组。
+        return .exactDay(
+            year: calendar.component(.year, from: date),
+            month: calendar.component(.month, from: date),
+            day: calendar.component(.day, from: date)
+        )
+
+    case .month:
+        return .calendarMonth(
+            year: calendar.component(.year, from: date),
+            month: calendar.component(.month, from: date)
+        )
     }
 }
 
@@ -123,7 +157,7 @@ private nonisolated func autoBucket(
     for date: Date,
     now: Date,
     calendar: Calendar
-) -> AutoBucket {
+) -> TimelineBucket {
     if calendar.isDate(date, inSameDayAs: now) {
         return .today
     }
@@ -140,9 +174,9 @@ private nonisolated func autoBucket(
 
     let year = calendar.component(.year, from: date)
     let currentYear = calendar.component(.year, from: now)
-    guard year != currentYear else {
-        // 同一年但已经过去的月份 → 按月分。
-        return .thisYear(month: calendar.component(.month, from: date))
+    guard year == currentYear else {
+        return .year(year)
     }
-    return .older(year: year)
+    // 同一年但已经过去的月份 → 按月分，比笼统的"今年"更有用。
+    return .month(calendar.component(.month, from: date))
 }

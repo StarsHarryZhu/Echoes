@@ -60,7 +60,7 @@ struct MemoryDetailView: View {
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .accessibilityLabel("分享")
+                .accessibilityLabel(L10n.memoryShare)
             }
         }
         .sheet(isPresented: $isSharing) {
@@ -70,19 +70,19 @@ struct MemoryDetailView: View {
             }
         }
         .confirmationDialog(
-            "删除这条记录？",
+            L10n.timelineDeleteConfirmTitle,
             isPresented: $isConfirmingDelete,
             titleVisibility: .visible
         ) {
-            Button("删除", role: .destructive) {
+            Button(L10n.delete, role: .destructive) {
                 Task {
                     try? await store.delete(current)
                     dismiss()
                 }
             }
-            Button("取消", role: .cancel) {}
+            Button(L10n.cancel, role: .cancel) {}
         } message: {
-            Text("照片和记录都会被删掉，无法恢复。")
+            Text(L10n.timelineDeleteConfirmMessage)
         }
     }
 
@@ -111,7 +111,7 @@ struct MemoryDetailView: View {
         Button(role: .destructive) {
             isConfirmingDelete = true
         } label: {
-            Label("删除这条记录", systemImage: "trash")
+            Label(L10n.memoryDeleteButton, systemImage: "trash")
                 .appText(16, weight: .semibold)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)

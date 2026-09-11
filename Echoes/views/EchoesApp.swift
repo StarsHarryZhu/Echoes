@@ -15,6 +15,10 @@ struct EchoesApp: App {
     /// 拍照流程编排。依赖 store，所以在 init 里组装。
     @State private var capture: CaptureCoordinator
 
+    /// 当前界面语言。变化时靠它重建整棵视图树 ——
+    /// SwiftUI 不会因为字符串表变了就重新求值那些已经算过的 `Text`。
+    @State private var language: AppLanguage = LanguageManager.current
+
     init() {
         let store = MemoryStore()
         _store = State(wrappedValue: store)
@@ -27,6 +31,17 @@ struct EchoesApp: App {
             RootView()
                 .environment(store)
                 .environment(capture)
+                .environment(\.appLanguage, language)
+                // 日期、数字等系统格式化也跟着界面语言走。
+                .environment(\.locale, Locale(identifier: language.resolvedCode))
+                // 语言一变就整体重建，不用重启应用 —— 这是「默认英文 + 可切换」
+                // 能做到即时生效的关键。
+                .id(language)
+                .onReceive(
+                    NotificationCenter.default.publisher(for: LanguageManager.didChangeNotification)
+                ) { _ in
+                    language = LanguageManager.current
+                }
                 .task {
                     // 迁移旧数据 + 读取归档清单。放在这里而不是 `init`，
                     // 是为了不阻塞首帧渲染。

@@ -33,18 +33,18 @@ struct AboutUsView: View {
                 .padding(.vertical, 16)
             }
 
-            Section("版本") {
-                LabeledContent("版本号", value: version)
-                LabeledContent("构建号", value: build)
+            Section(L10n.aboutSectionVersion) {
+                LabeledContent(L10n.aboutVersion, value: version)
+                LabeledContent(L10n.aboutBuild, value: build)
             }
 
-            Section("我们为什么做 Echoes") {
+            Section(L10n.aboutWhyTitle) {
                 Text(AppCopy.creatorsIntro)
                     .appText(15)
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("关于 Echoes")
+        .navigationTitle(L10n.settingsAboutApp)
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -36,17 +36,17 @@ struct CaptureReviewView: View {
                 .padding(.vertical, 16)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("这张怎么样？")
+            .navigationTitle(L10n.reviewTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("重拍") {
+                    Button(L10n.retake) {
                         capture.discardPendingMemory()
                     }
                     .disabled(capture.phase == .saving)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button(L10n.save) {
                         Task { await capture.savePendingMemory() }
                     }
                     .fontWeight(.semibold)
@@ -86,7 +86,7 @@ struct CaptureReviewView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(report.emotion.displayName)
                     .appText(24, weight: .bold)
-                Text("置信度 \(percent(report.confidence))")
+                Text(L10n.memoryConfidence(report.confidence))
                     .appText(13)
                     .foregroundStyle(.secondary)
             }
@@ -100,7 +100,7 @@ struct CaptureReviewView: View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
-            Text("这次判定的把握不大——可能是光线太暗，或者脸没有正对镜头。仍然可以保存。")
+            Text(L10n.reviewLowConfidence)
                 .appText(13)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
@@ -119,9 +119,9 @@ struct CaptureReviewView: View {
             Image(systemName: "info.circle.fill")
                 .foregroundStyle(.blue)
             VStack(alignment: .leading, spacing: 4) {
-                Text("结果可能不准")
+                Text(L10n.reviewDegradedTitle)
                     .appText(13, weight: .semibold)
-                Text(reason.errorDescription ?? "没能定位到人脸，这次是对整张照片做的判定。")
+                Text(reason.errorDescription ?? L10n.reviewDegradedFallback)
                     .appText(12)
                     .foregroundStyle(.secondary)
             }
@@ -135,7 +135,7 @@ struct CaptureReviewView: View {
     private var savingOverlay: some View {
         ZStack {
             Color.black.opacity(0.2).ignoresSafeArea()
-            ProgressView("保存中…")
+            ProgressView(L10n.saving)
                 .padding(20)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
         }

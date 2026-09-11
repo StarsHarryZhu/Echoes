@@ -29,13 +29,13 @@ enum CameraError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unavailable:
-            return "这台设备没有可用的相机。"
+            return L10n.cameraUnavailable
         case .frontCameraUnavailable:
-            return "找不到前置相机。"
+            return L10n.cameraFrontUnavailable
         case .noPresentingViewController:
-            return "现在无法弹出相机，请稍后重试。"
+            return L10n.cameraNoPresenter
         case .noImageReturned:
-            return "相机没有返回照片。"
+            return L10n.cameraNoImage
         case .cancelled:
             return nil
         }

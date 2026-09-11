@@ -87,7 +87,7 @@ extension MemoryManifest {
         var errorDescription: String? {
             switch self {
             case .corrupted(let reason):
-                return "归档清单损坏，已备份原文件并以空归档启动：\(reason)"
+                return L10n.manifestCorrupted(reason)
             }
         }
     }

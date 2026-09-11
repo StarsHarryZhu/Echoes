@@ -128,7 +128,7 @@ extension MemoryMigrator {
         var errorDescription: String? {
             switch self {
             case .manifestUnreadable(let reason):
-                return "旧的归档清单读不出来：\(reason)"
+                return L10n.migrationUnreadable(reason)
             }
         }
     }

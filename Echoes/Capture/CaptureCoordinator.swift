@@ -137,7 +137,7 @@ final class CaptureCoordinator {
             pendingImage = nil
             phase = .idle
         } catch {
-            phase = .failed("保存失败：\(error.localizedDescription)")
+            phase = .failed(L10n.saveFailed(error.localizedDescription))
         }
         hasCommittedReview = false
     }

@@ -78,15 +78,18 @@ struct EmotionListView: View {
             }
             .shadow(radius: 3, y: 2)
             .accessibilityLabel(
-                "\(DateFormatters.full.string(from: memory.capturedAt))，\(emotion.displayName)"
+                L10n.memoryAccessibilityLabel(
+                    date: DateFormatters.full.string(from: memory.capturedAt),
+                    emotion: emotion.displayName
+                )
             )
     }
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("还没有「\(emotion.displayName)」", systemImage: emotion.symbol)
+            Label(L10n.emotionListEmptyTitle(emotion), systemImage: emotion.symbol)
         } description: {
-            Text("拍下这个表情的照片会自动归到这里。")
+            Text(L10n.emotionListEmptyMessage)
         }
     }
 }

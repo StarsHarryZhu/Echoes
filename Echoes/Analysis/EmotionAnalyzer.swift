@@ -20,15 +20,15 @@ enum EmotionAnalysisError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .imageHasNoPixels:
-            return "这张照片读不出像素数据，换一张试试。"
+            return L10n.analysisNoPixels
         case .noFaceDetected:
-            return "没有在照片里找到人脸。请正对前置相机、让脸部完整出现在取景框里再试一次。"
+            return L10n.analysisNoFace
         case .allFacesTooSmall:
-            return "照片里检测到的人脸太小，识别不准。靠近一点再拍一张。"
+            return L10n.analysisFaceTooSmall
         case .modelUnavailable(let reason):
-            return "表情识别模型加载失败：\(reason)"
+            return L10n.analysisModelUnavailable(reason)
         case .inferenceFailed(let reason):
-            return "表情识别出错：\(reason)"
+            return L10n.analysisInferenceFailed(reason)
         }
     }
 }
@@ -180,7 +180,7 @@ actor EmotionAnalyzer {
 
         let classifications = observations.compactMap { $0 as? Vision.ClassificationObservation }
         guard !classifications.isEmpty else {
-            throw EmotionAnalysisError.inferenceFailed("模型没有返回任何分类结果")
+            throw EmotionAnalysisError.inferenceFailed(L10n.analysisNoResults)
         }
 
         // 模型输出的是**未归一化的 logits**（实测某个类别的值是 -2.08），
@@ -193,7 +193,7 @@ actor EmotionAnalyzer {
         }
         let probabilities = Self.softmax(emotionByLabel)
         guard !probabilities.isEmpty else {
-            throw EmotionAnalysisError.inferenceFailed("模型的输出里没有可识别的表情标签")
+            throw EmotionAnalysisError.inferenceFailed(L10n.analysisNoKnownLabels)
         }
 
         // 七个类别全部保留。未出现在结果里的补 0，保证详情页永远画得出完整的概率条。

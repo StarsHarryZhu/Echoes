@@ -23,6 +23,10 @@ struct SettingsView: View {
     @AppStorage(AppPreferenceKey.timelineGranularity)
     private var granularityRaw: String = TimelineGranularity.automatic.rawValue
 
+    /// 语言是全局状态，不用 `@AppStorage` —— 它要同时更新字符串表缓存
+    /// 并广播通知让视图树重建。
+    @State private var language: AppLanguage = LanguageManager.current
+
     /// 默认开。关掉后，检测不到人脸就让用户重拍而不是硬给一个结果。
     @AppStorage(AppPreferenceKey.faceDetectionFallback)
     private var faceDetectionFallback: Bool = true
@@ -47,17 +51,18 @@ struct SettingsView: View {
 
     var body: some View {
         List {
+            languageSection
             timelineSection
             analysisSection
             storageSection
             aboutSection
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("设置")
+        .navigationTitle(L10n.settingsTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("完成") { dismiss() }
+                Button(L10n.done) { dismiss() }
                     .fontWeight(.semibold)
             }
         }
@@ -74,30 +79,47 @@ struct SettingsView: View {
 
     // MARK: - 分区
 
+    private var languageSection: some View {
+        Section {
+            Picker(L10n.settingsLanguageRow, selection: $language) {
+                ForEach(AppLanguage.allCases) { option in
+                    Text(option.displayName).tag(option)
+                }
+            }
+        } header: {
+            Text(L10n.settingsSectionLanguage)
+        } footer: {
+            Text(L10n.settingsLanguageFooter)
+        }
+        .onChange(of: language) { _, newValue in
+            // 写入会广播通知，EchoesApp 换掉根视图 id 重建整棵树。
+            LanguageManager.current = newValue
+            // 日期格式也跟着语言走，缓存要清掉。
+            DateFormatters.resetCache()
+        }
+    }
+
     private var timelineSection: some View {
         Section {
-            Picker("时间归档分组", selection: granularity) {
+            Picker(L10n.settingsTimelineGrouping, selection: granularity) {
                 ForEach(TimelineGranularity.allCases) { option in
                     Text(option.title).tag(option)
                 }
             }
         } header: {
-            Text("时间归档")
+            Text(L10n.settingsSectionTimeline)
         } footer: {
-            Text("决定「Timeline」页里照片的分组方式。")
+            Text(L10n.settingsTimelineFooter)
         }
     }
 
     private var analysisSection: some View {
         Section {
-            Toggle("检测不到人脸时退回整图识别", isOn: $faceDetectionFallback)
+            Toggle(L10n.settingsFaceFallback, isOn: $faceDetectionFallback)
         } header: {
-            Text("表情识别")
+            Text(L10n.settingsSectionAnalysis)
         } footer: {
-            Text(
-                "开着的时候，即使没检测到人脸也会给一个表情判定（准确率较低，结果会标注「可能不准」）。"
-                + "关掉之后会提示你重拍，要求必须拍到完整人脸。"
-            )
+            Text(L10n.settingsFaceFallbackFooter)
         }
     }
 
@@ -107,14 +129,14 @@ struct SettingsView: View {
                 Text("\(store.memories.count)")
                     .foregroundStyle(.secondary)
             } label: {
-                Label("已归档照片", systemImage: "photo.stack")
+                Label(L10n.settingsArchivedPhotos, systemImage: "photo.stack")
             }
 
             Button {
                 Task { await clearCache() }
             } label: {
                 HStack {
-                    Label("清除缩略图缓存", systemImage: "trash")
+                    Label(L10n.settingsClearCache, systemImage: "trash")
                     Spacer()
                     if isClearing {
                         ProgressView().controlSize(.small)
@@ -126,12 +148,12 @@ struct SettingsView: View {
             }
             .disabled(isClearing)
         } header: {
-            Text("存储")
+            Text(L10n.settingsSectionStorage)
         } footer: {
             if let clearResult {
                 Text(clearResult)
             } else {
-                Text("缩略图会按需重建，原图不受影响。")
+                Text(L10n.settingsStorageFooter)
             }
         }
     }
@@ -139,19 +161,19 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section {
             NavigationLink(value: Subpage.about) {
-                Label("关于 Echoes", systemImage: "info.circle")
+                Label(L10n.settingsAboutApp, systemImage: "info.circle")
             }
             NavigationLink(value: Subpage.creators) {
-                Label("开发团队", systemImage: "person.2")
+                Label(L10n.settingsTeam, systemImage: "person.2")
             }
             NavigationLink(value: Subpage.feedback) {
-                Label("反馈与建议", systemImage: "envelope")
+                Label(L10n.settingsFeedback, systemImage: "envelope")
             }
             NavigationLink(value: Subpage.rate) {
-                Label("给我们评分", systemImage: "star")
+                Label(L10n.settingsRate, systemImage: "star")
             }
         } header: {
-            Text("关于")
+            Text(L10n.settingsSectionAbout)
         }
     }
 
@@ -169,8 +191,8 @@ struct SettingsView: View {
         await refreshDiskUsage()
 
         clearResult = freed > 0
-            ? "已释放 \(formattedByteCount(freed))。"
-            : "没有可清理的缓存。"
+            ? L10n.settingsCacheFreed(formattedByteCount(freed))
+            : L10n.settingsCacheNothing
     }
 }
 

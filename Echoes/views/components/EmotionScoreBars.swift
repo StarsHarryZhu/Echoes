@@ -17,7 +17,7 @@ struct EmotionScoreBars: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("判定依据")
+            Text(L10n.memoryEvidence)
                 .appText(13, weight: .semibold)
                 .foregroundStyle(.secondary)
 
