@@ -28,9 +28,8 @@ struct EchoesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(capture: capture)
                 .environment(store)
-                .environment(capture)
                 .environment(\.appLanguage, language)
                 // 日期、数字等系统格式化也跟着界面语言走。
                 .environment(\.locale, Locale(identifier: language.resolvedCode))

@@ -52,6 +52,7 @@ nonisolated enum L10n {
 
     static var tabEmotions: String { string("tab.emotions", "Emotions") }
     static var tabTimeline: String { string("tab.timeline", "Timeline") }
+    static var tabCapture: String { string("tab.capture", "Capture") }
     static var tabEmotionsHint: String { string("tab.emotions.hint", "Browse by emotion") }
     static var tabTimelineHint: String { string("tab.timeline.hint", "Browse by time") }
     static var shutterLabel: String { string("shutter.label", "Take a photo") }

@@ -5,9 +5,14 @@
 
 import SwiftUI
 
-/// 两个归档维度。同时是底部 tab 栏的两个 tab。
+/// 底部 tab 栏的三项。
+///
+/// `.capture` **不是页面**，是一个动作：点它只弹相机，拍完仍留在原来那个归档里。
+/// 把它做成 tab 而不是悬浮按钮，是为了让它和 tab 栏是一个整体 ——
+/// 之前悬浮在 tab 栏上会同时造成遮挡和「两个按钮」的观感。
 enum RootSection: String, CaseIterable, Hashable, Identifiable {
     case emotions
+    case capture
     case timeline
 
     var id: String { rawValue }
@@ -15,6 +20,7 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
     var title: String {
         switch self {
         case .emotions: return L10n.tabEmotions
+        case .capture: return L10n.tabCapture
         case .timeline: return L10n.tabTimeline
         }
     }
@@ -22,6 +28,7 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
     var symbol: String {
         switch self {
         case .emotions: return "face.smiling.inverse"
+        case .capture: return "camera"
         case .timeline: return "clock.arrow.circlepath"
         }
     }
@@ -29,9 +36,15 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
     var accessibilityHint: String {
         switch self {
         case .emotions: return L10n.tabEmotionsHint
+        case .capture: return L10n.shutterHint
         case .timeline: return L10n.tabTimelineHint
         }
     }
+
+    /// 真正承载页面的 tab（相机不是）。
+    static var browsingCases: [RootSection] { [.emotions, .timeline] }
+
+    var isBrowsing: Bool { self != .capture }
 }
 
 /// 导航目的地。
@@ -44,8 +57,8 @@ enum RootRoute: Hashable {
 ///
 /// 布局对应需求：
 /// - 底部 tab 栏**左侧**：按表情归档
+/// - 底部 tab 栏**中间**：拍照（动作，不是页面）
 /// - 底部 tab 栏**右侧**：按时间归档
-/// - 底部**中间**：大圆拍照键，悬浮在 tab 栏之上
 ///
 /// 重构前这里是个三页 `TabView`，中间那页塞了个空 `Text("")`、再靠 `onChange`
 /// 把选中项弹回去，只为做出"中间悬浮按钮"的视觉效果。现在 tab 数量与"两个归档"
@@ -53,9 +66,14 @@ enum RootRoute: Hashable {
 struct RootView: View {
 
     @Environment(MemoryStore.self) private var store
-    @Environment(CaptureCoordinator.self) private var capture
+
+    /// 直接用构造参数注入，不走 `@Environment`。
+    /// 手势闭包里访问它不需要可变捕获，省掉一层隔离相关的麻烦。
+    let capture: CaptureCoordinator
 
     @State private var section: RootSection = Self.initialSection
+    /// 最近一次选中的**可浏览**归档。点相机 tab 时用它把选中状态弹回来。
+    @State private var lastBrowsingSection: RootSection = Self.initialSection
     @State private var path: [RootRoute] = []
     @State private var isShowingSettings = Self.opensSettingsAtLaunch
 
@@ -90,22 +108,28 @@ struct RootView: View {
             Tab(RootSection.emotions.title, systemImage: RootSection.emotions.symbol, value: .emotions) {
                 browser
             }
+            Tab(RootSection.capture.title, systemImage: RootSection.capture.symbol, value: .capture) {
+                browser
+            }
             Tab(RootSection.timeline.title, systemImage: RootSection.timeline.symbol, value: .timeline) {
                 browser
             }
         }
-        // 拍照键做成 **tab 栏配件**，而不是浮在 tab 栏上面的独立视图。
-        //
-        // 之前是用 ZStack 把圆形按钮压在 tab 栏正中，结果它挡住了 tab 栏。
-        // `tabViewBottomAccessory` 让系统在 tab 栏里给它一块专属位置：
-        // 会自动抬高 tab 栏、不遮挡任何 tab，也不和标签文字打架。
-        .tabViewBottomAccessory {
-            shutter
-        }
-        // 别让 tab 栏在滚动时收起 —— 收起会让配件的落点变得不可预期。
+        // 别让 tab 栏在滚动时收起 —— 收起会打乱三项的固定位置。
         .tabBarMinimizeBehavior(.never)
-        // 切换 tab 时回到列表根，而不是停在上一个 tab 的详情页上。
-        .onChange(of: section) { _, _ in path.removeAll() }
+        // 切 tab 时回到列表根，而不是停在上一个 tab 的详情页上。
+        .onChange(of: section) { _, new in
+            if new == .capture {
+                // 相机 tab 不是页面：弹相机，并把 tab 状态留在原来那个归档上。
+                // 两次 `$section` 赋值触发的 onChange 都会被 `old == .capture` 拦住。
+                section = lastBrowsingSection
+                Task { await capture.startCapture() }
+                return
+            }
+            lastBrowsingSection = new
+            // 切归档时回到列表根，而不是停在上一个归档的详情页上。
+            path.removeAll()
+        }
         .fullScreenCover(isPresented: $isShowingSettings) {
             NavigationStack { SettingsView() }
         }
@@ -197,9 +221,17 @@ struct RootView: View {
         }
     }
 
+    /// 当前应该渲染哪个归档。
+    ///
+    /// 选中相机 tab 的那一瞬间 `section == .capture`，但相机不是页面 ——
+    /// 此时继续渲染上一个归档，避免闪一下空白。
+    private var browsingSection: RootSection {
+        section.isBrowsing ? section : lastBrowsingSection
+    }
+
     @ViewBuilder
     private var content: some View {
-        switch section {
+        switch browsingSection {
         case .emotions:
             EmotionAlbumView { emotion in
                 path.append(.emotion(emotion))
@@ -208,6 +240,9 @@ struct RootView: View {
             TimelineView { memory in
                 path.append(.memory(memory))
             }
+        case .capture:
+            // 不可达：`browsingSection` 永远是可浏览的归档。
+            EmptyView()
         }
     }
 
@@ -227,33 +262,10 @@ struct RootView: View {
 
     // MARK: - 快门
 
-    /// tab 栏配件里的拍照键。
-    ///
-    /// 水平居中放在配件槽里；配件本身由系统摆在 tab 栏中间偏上的专属位置，
-    /// 所以这里不需要再自己算底部间距。
-    private var shutter: some View {
-        ShutterButton(
-            isBusy: capture.phase.isBusy,
-            caption: shutterCaption
-        ) {
-            Task { await capture.startCapture() }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    /// 配件上的说明文字，跟着当前阶段走。
-    private var shutterCaption: String? {
-        switch capture.phase {
-        case .analyzing: return L10n.shutterAnalyzing
-        case .saving: return L10n.saving
-        default: return L10n.shutterHint
-        }
-    }
 }
 
 #Preview {
     let store = MemoryStore()
-    return RootView()
+    return RootView(capture: CaptureCoordinator.makeDefault(store: store))
         .environment(store)
-        .environment(CaptureCoordinator.makeDefault(store: store))
 }
