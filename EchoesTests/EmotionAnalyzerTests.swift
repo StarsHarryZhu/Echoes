@@ -9,11 +9,39 @@ import UIKit
 
 @testable import Echoes
 
+/// 从测试 bundle 的 `Fixtures/` 里取一张人脸照片。
+///
+/// 这几张图**曾经在 app 包里**，被"相机不可用时兜底"的逻辑用着。
+/// 兜底移除后它们只是测试夹具，就挪到测试 bundle 了 ——
+/// 测试资源不该随应用分发（那 4 张图加起来 1.8MB）。
+private enum FaceFixtures {
+
+    /// 用一个本地类型定位测试 bundle 自己，而不是宿主 app。
+    private final class BundleToken {}
+
+    private static let names = ["sample1", "sample2", "sample3", "sample4"]
+
+    static var bundle: Bundle { Bundle(for: BundleToken.self) }
+
+    /// 第一张能读出来的人脸照片。
+    static func first() -> UIImage? {
+        for name in names {
+            guard let url = bundle.url(forResource: name, withExtension: "jpg"),
+                  let image = UIImage(contentsOfFile: url.path) else { continue }
+            return image
+        }
+        return nil
+    }
+
+    static var availableCount: Int {
+        names.reduce(into: 0) { total, name in
+            if bundle.url(forResource: name, withExtension: "jpg") != nil { total += 1 }
+        }
+    }
+}
+
 @Suite("表情识别管线")
 struct EmotionAnalyzerTests {
-
-    /// 包内采样图。测试宿主是 Echoes.app，所以这些资源在应用包里。
-    private static let sampleNames = ["sample1", "sample2", "sample3", "sample4"]
 
     private static func makeBlankImage(width: CGFloat, height: CGFloat) -> UIImage {
         let format = UIGraphicsImageRendererFormat.default()
@@ -28,7 +56,7 @@ struct EmotionAnalyzerTests {
     }
 
     private static func firstSampleImage() -> UIImage? {
-        sampleNames.lazy.compactMap { UIImage(named: $0) }.first
+        FaceFixtures.first()
     }
 
     // MARK: - 失败路径
@@ -113,11 +141,16 @@ struct EmotionAnalyzerTests {
         #expect(report.rankedScores.allSatisfy { $0.confidence >= 0 && $0.confidence <= 1 })
     }
 
-    @Test("采样图在模拟器相机缺失时可用作兜底")
-    func sampleImagesAreUsable() {
-        let missing = Self.sampleNames.filter { UIImage(named: $0) == nil }
-        #expect(missing.isEmpty, "缺少采样图：\(missing)")
-        #expect(UIImage(named: AppInfo.SampleImage.fallback) != nil)
+    /// 夹具在测试 bundle 里，而**不在** app 包里 —— 相机兜底移除后
+    /// 这几张照片没有理由再随应用分发。
+    @Test("人脸夹具在测试 bundle 里，且不在 app 包里")
+    func fixturesLiveInTheTestBundle() {
+        #expect(FaceFixtures.availableCount > 0, "测试 bundle 里缺少人脸夹具")
+        #expect(Self.firstSampleImage() != nil)
+
+        // app 包里不该再有这些图
+        #expect(Bundle.main.url(forResource: "sample1", withExtension: "jpg") == nil)
+        #expect(UIImage(named: "sample1") == nil, "采样图不该再从 app 包里取到")
     }
 
     @Test("降级路径会带上可展示的原因")

@@ -31,15 +31,6 @@ nonisolated enum AppInfo {
 
     /// 反馈邮箱。
     static let feedbackEmail = "feedback@echoes.app"
-
-    // MARK: 资源
-
-    /// DEBUG 下模拟器没有相机时用来跑通识别管线的采样图。
-    nonisolated enum SampleImage {
-        static let names = ["sample1", "sample2", "sample3", "sample4"]
-        /// 若某张图缺失，回退到这张。
-        static let fallback = "sample1"
-    }
 }
 
 /// `UserDefaults` 的键。集中放一处，避免字符串散落各处拼错。

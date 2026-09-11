@@ -53,7 +53,8 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
 - `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本月/更早
 - `-uiStartSection emotions|timeline`：直接打开指定的归档 tab
 - `-uiShowSettings`：直接打开设置页
-- `-uiCaptureOnce`：启动后自动走一次拍照流程（等同点一下相机键）
+- `-uiCaptureOnce`：启动后自动走一次拍照流程。模拟器没有相机，
+  这条参数正好用来验证「相机不可用 → 弹窗提示」这条错误路径
 
 这些参数只在 DEBUG 编译里存在。
 
@@ -79,20 +80,26 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
 
 ## 相机的行为
 
-Echoes 需要**前置**相机。是否用系统相机由运行时能力决定
-（`UIImagePickerController.isCameraDeviceAvailable(.front)`），
-而不是 `#if targetEnvironment(simulator)`：
+Echoes 需要**前置**相机，**没有兜底**：相机不可用时直接报错，由界面弹窗提示用户
+（「Something went wrong / We couldn't find the front camera.」），
+不会悄悄给一张替代图片。
 
-| 环境 | `isSourceTypeAvailable(.camera)` | `isCameraDeviceAvailable(.front)` | 行为 |
-|---|---|---|---|
-| 真机 | true | true | 弹系统前置相机 |
-| 模拟器（实测） | **true** | **false** | 用包内示例图兜底 |
+判据是 `UIImagePickerController.isCameraDeviceAvailable(.front)`。
+注意这两个 API 的答案**可以不一致** —— 实测 iOS 27 模拟器上：
 
-注意第一列和第二列**可以不一致** —— iOS 27 的模拟器上 camera 源报告可用，
-但并没有任何摄像头设备。所以不能拿 `.camera` 源可用当"有相机"用。
+| 环境 | `isSourceTypeAvailable(.camera)` | `isCameraDeviceAvailable(.front)` |
+|---|---|---|
+| 真机 | true | true |
+| 模拟器 | **true** | **false** |
 
-用示例图兜底时，预览页会明确标注「当前环境没有前置相机，这是一张内置示例图」，
-不会让人误以为真的拍到了。
+也就是说 camera 源报告可用，但并没有任何摄像头设备。所以不能拿 `.camera`
+源可用当"有相机"用。
+
+### 关于人脸照片夹具
+
+`EchoesTests/Fixtures/` 里有几张人脸照片，用于验证「人脸检测 + CoreML 推理」
+这条链路。它们**只在测试 bundle 里**，不在 app 包里 —— 测试资源不该随应用分发。
+如果哪天想换掉，替换该目录下的 `sample1.jpg` 等文件即可。
 
 ## 目录结构
 

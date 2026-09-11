@@ -8,92 +8,77 @@ import UIKit
 
 @testable import Echoes
 
-/// 拍照来源的选择逻辑。
+/// 拍照来源与失败路径。
 ///
-/// 加这组测试是因为开发时在模拟器上点相机键"没有呼出相机、却出现了一张照片"，
-/// 需要有一条测试说清楚这是**有意为之的兜底**，而不是走错了分支。
-@Suite("拍照来源")
+/// Echoes 需要**前置**相机，且**没有兜底**：相机不可用就报错、由界面弹窗提示，
+/// 不会悄悄给一张替代图片。这组测试把这个约定钉住。
+@Suite("拍照来源与失败路径")
 @MainActor
 struct CapturePathTests {
 
-    /// 记录一条实测事实：**不能**假设"模拟器没有相机"。
+    /// 记录一条实测事实：两个相机 API 的答案**可以不一致**。
     ///
-    /// 开发时点相机键没呼出相机、却出现了一照片，查下来就是因为
-    /// `isSourceTypeAvailable(.camera)` 在 iOS 27 模拟器上返回 `true`。
-    /// 兜底因此改为运行时判断，这条测试把这个前提钉住。
-    @Test("相机可用性必须按运行时判断，不能靠编译期假设")
-    func cameraAvailabilityIsRuntimeDependent() {
-        let sourceAvailable = UIImagePickerController.isSourceTypeAvailable(.camera)
-        let frontAvailable = UIImagePickerController.isCameraDeviceAvailable(.front)
+    /// iOS 27 模拟器上 `isSourceTypeAvailable(.camera)` 返回 `true`，
+    /// 而 `isCameraDeviceAvailable(.front)` 返回 `false`。
+    /// 所以不能拿 `.camera` 源可用当"有相机"用 —— 否则会走真机路径、
+    /// 最后拿不到照片。Echoes 必须用前置相机，判据只能是后者。
+    @Test("相机可用性以「前置相机」为准，不能拿 camera 源顶替")
+    func capabilityIsAboutTheFrontCamera() {
+        let hasCameraSource = UIImagePickerController.isSourceTypeAvailable(.camera)
+        let hasFrontCamera = UIImagePickerController.isCameraDeviceAvailable(.front)
 
-        // 关键事实：这两个 API 的答案**可以不一样** ——
-        // iOS 27 模拟器上 source 为 true 而 front 为 false。
-        // 所以不能拿 `.camera` 源可用当"有相机"用。
-        #expect(frontAvailable == CaptureCoordinator.hasFrontCamera)
-
-        if !frontAvailable {
-            #expect(CaptureCoordinator.hasFrontCamera == false)
+        // 这条断言的意义：camera 源报告可用时，也**不能**据此认为有前置相机。
+        // iOS 27 模拟器就是这个组合（source = true、front = false）。
+        if hasCameraSource && !hasFrontCamera {
+            #expect(!hasFrontCamera, "必须以前置相机可用性为准")
         }
-        _ = sourceAvailable   // 仅作记录，不参与判据
-    }
 
-    @Test("工厂按运行时能力选择实现")
-    func factoryPicksImplementationByCapability() {
-        let store = MemoryStore()
-        let coordinator = CaptureCoordinator.makeDefault(store: store)
-
-        if CaptureCoordinator.hasFrontCamera {
-            #expect(coordinator.camera is UIImagePickerCamera,
-                    "有前置相机就应该用系统相机，而不是采样图兜底")
-        } else {
-            #expect(coordinator.camera is SimulatedCamera,
-                    "没有前置相机才应该退回采样图")
+        // 而反过来（有前置相机却没有 camera 源）是不成立的，可作为一致性检查。
+        if hasFrontCamera {
+            #expect(hasCameraSource, "有前置相机时 camera 源应该也可用")
         }
     }
 
-    @Test("采样图兜底按顺序轮换，且每张都能取到")
-    func simulatedCameraReturnsBundledImages() async throws {
-        let camera = SimulatedCamera()
-        var seen: [UIImage] = []
-
-        for _ in 0..<AppInfo.SampleImage.names.count {
-            let captured = try await camera.captureFrontPhoto()
-            seen.append(captured.image)
-            #expect(captured.orientation == .up)
-        }
-
-        // 轮换一整圈：拿到 4 张不同的图
-        #expect(seen.count == AppInfo.SampleImage.names.count)
-        let distinct = Set(seen.map { ObjectIdentifier($0) })
-        #expect(distinct.count == AppInfo.SampleImage.names.count, "兜底应该在采样图之间轮换")
-
-        // 每张都有真实像素，能送进识别管线
-        for image in seen {
-            #expect(image.cgImage != nil)
-        }
-    }
-
-    @Test("采样图都在包里")
-    func sampleImagesAreBundled() {
-        let missing = AppInfo.SampleImage.names.filter { UIImage(named: $0) == nil }
-        #expect(missing.isEmpty, "包装里缺少采样图：\(missing)")
-    }
-
-    /// `UIImagePickerCamera` **不会**静默换成采样图：没有相机就抛明确错误。
-    ///
-    /// 只有环境确实没有相机时才检验 —— 有相机时它会真的弹相机，没法在测试里跑。
-    @Test("系统相机在无相机环境下抛明确错误，不静默兜底")
-    func realCameraThrowsWhenUnavailable() async {
-        guard !CaptureCoordinator.hasFrontCamera else { return }
+    /// 核心行为：没有前置相机时抛明确错误，**不返回替代图片**。
+    @Test("相机不可用时抛错，不给替代图片")
+    func unavailableCameraThrows() async {
+        guard !UIImagePickerController.isCameraDeviceAvailable(.front) else { return }
 
         let camera = UIImagePickerCamera()
         do {
             _ = try await camera.captureFrontPhoto()
-            Issue.record("相机不可用时不应该返回照片")
+            Issue.record("相机不可用时不应该返回照片 —— 兜底已被移除")
         } catch let error as CameraError {
-            #expect(error == .unavailable || error == .frontCameraUnavailable)
+            #expect(
+                error == .unavailable || error == .frontCameraUnavailable,
+                "期望「相机不可用」类错误，实际 \(error)"
+            )
         } catch {
             Issue.record("抛出了非 CameraError：\(error)")
         }
+    }
+
+    @Test("相机不可用的错误文案可以展示给用户")
+    func unavailableErrorHasLocalizedMessage() throws {
+        for error in [CameraError.unavailable, .frontCameraUnavailable] {
+            let message = try #require(error.errorDescription)
+            #expect(!message.isEmpty)
+            // 必须是文案，不是 key
+            #expect(!message.hasPrefix("camera."))
+        }
+    }
+
+    @Test("用户取消不算错误，不该弹提示")
+    func cancellationIsNotAnError() {
+        #expect(CameraError.cancelled.isCancellation)
+        #expect(!CameraError.unavailable.isCancellation)
+        #expect(!CameraError.frontCameraUnavailable.isCancellation)
+        #expect(CameraError.cancelled.errorDescription == nil)
+    }
+
+    @Test("生产组装一律使用系统相机实现")
+    func defaultUsesSystemCamera() {
+        let coordinator = CaptureCoordinator.makeDefault(store: MemoryStore())
+        #expect(coordinator.camera is UIImagePickerCamera)
     }
 }

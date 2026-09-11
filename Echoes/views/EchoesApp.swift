@@ -65,37 +65,35 @@ struct EchoesApp: App {
         await capture.startCapture()
     }
 
-    /// 用启动参数预置几条示例记录，便于在模拟器（没有相机）上验证归档界面。
+    /// 用启动参数预置几条示例记录，便于在模拟器上验证归档界面。
     ///
     ///     xcrun simctl launch <device> com.Echoesone.Echoes -uiSeedSampleData
     ///
-    /// 只在 DEBUG 编译里存在，Release 包里没有这段代码。
+    /// 用**程序生成的占位图**，不依赖包内任何照片资源 —— 采样图已经从 app 包里
+    /// 移走了（它们是测试夹具，不该随应用分发）。
     private static func seedSampleDataIfRequested(store: MemoryStore) async {
         guard ProcessInfo.processInfo.arguments.contains("-uiSeedSampleData") else { return }
         guard store.memories.isEmpty else { return }
 
-        // 每条都跑完整识别管线，产出的记录与真机拍照完全同构；
-        // 时间刻意跨越"今天 / 昨天 / 本周 / 本月 / 更早"，好验证时间归档的分组。
+        // 时间刻意跨越"今天 / 昨天 / 本月 / 更早"，好验证时间归档的分组。
         let emotions: [Emotion] = [.happy, .neutral, .surprise, .sad, .angry]
         let hoursAgo: [Int] = [1, 30, 6 * 24, 20 * 24, 130 * 24]
-        for (index, expected) in emotions.enumerated() {
-            let name = AppInfo.SampleImage.names[index % AppInfo.SampleImage.names.count]
-            guard let image = UIImage(named: name) else { continue }
 
-            let report: EmotionReport
-            if let analyzed = try? await EmotionAnalyzer.shared.analyze(image: image) {
-                report = analyzed
-            } else {
-                // 采样图里没人脸时造一条最小可用的报告，保证界面有数据可渲染。
-                report = EmotionReport(
-                    emotion: expected,
-                    confidence: 0.5,
-                    rankedScores: Emotion.allCases.map {
-                        EmotionReport.Score(emotion: $0, confidence: $0 == expected ? 0.5 : 0.5 / 6)
-                    },
-                    faceBox: CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
-                )
-            }
+        for (index, emotion) in emotions.enumerated() {
+            guard let image = placeholderImage(for: emotion) else { continue }
+            let report = EmotionReport(
+                emotion: emotion,
+                confidence: 0.75,
+                rankedScores: Emotion.allCases
+                    .map { candidate in
+                        EmotionReport.Score(
+                            emotion: candidate,
+                            confidence: candidate == emotion ? 0.75 : 0.25 / 6
+                        )
+                    }
+                    .sorted { $0.confidence > $1.confidence },
+                faceBox: CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+            )
 
             let capturedAt = Calendar.current.date(
                 byAdding: .hour,
@@ -103,6 +101,31 @@ struct EchoesApp: App {
                 to: Date()
             ) ?? Date()
             _ = try? await store.add(image: image, report: report, capturedAt: capturedAt)
+        }
+    }
+
+    /// 生成一张带表情名的占位图。
+    private static func placeholderImage(for emotion: Emotion) -> UIImage? {
+        let size = CGSize(width: 600, height: 600)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        format.opaque = true
+
+        return UIGraphicsImageRenderer(size: size, format: format).image { context in
+            UIColor(emotion.tint).setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 72, weight: .semibold),
+                .foregroundColor: UIColor.white,
+            ]
+            let text = emotion.displayName as NSString
+            let textSize = text.size(withAttributes: attributes)
+            let origin = CGPoint(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2
+            )
+            text.draw(at: origin, withAttributes: attributes)
         }
     }
     #endif

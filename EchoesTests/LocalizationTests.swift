@@ -63,7 +63,6 @@ private let expectedStrings: [(key: String, english: String)] = [
     // review
     ("review.title", "How’s this one?"),
     ("review.degraded.title", "This may be inaccurate"),
-    ("review.samplePhoto", "No front camera in this environment — this is a bundled sample photo, not a real capture."),
     // startup
     ("startup.failed.title", "Couldn’t load your archive"),
     ("capture.saveFailed", "Couldn’t save: %@"),
@@ -286,7 +285,6 @@ struct LocalizationTests {
             L10n.memoryAccessibilityLabel(date: "d", emotion: "e"),
             L10n.memoryScoreAccessibility(emotion: "e", confidence: "50%"),
             L10n.reviewTitle, L10n.reviewLowConfidence, L10n.reviewDegradedTitle, L10n.reviewDegradedFallback,
-            L10n.reviewSamplePhoto,
             L10n.startupFailedTitle, L10n.startupCorrupted("x"), L10n.saveFailed("x"),
             L10n.analysisNoPixels, L10n.analysisNoFace, L10n.analysisFaceTooSmall,
             L10n.analysisModelUnavailable("x"), L10n.analysisInferenceFailed("x"),
