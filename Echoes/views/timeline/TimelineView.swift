@@ -39,7 +39,7 @@ struct TimelineView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 92) }
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
         .confirmationDialog(
             "删除这条记录？",
             isPresented: Binding(

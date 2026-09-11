@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// 两个归档维度的切换状态。
+/// 两个归档维度。同时是底部 tab 栏的两个 tab。
 enum RootSection: String, CaseIterable, Hashable, Identifiable {
     case emotions
     case timeline
@@ -21,13 +21,20 @@ enum RootSection: String, CaseIterable, Hashable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .emotions: return "face.smiling"
+        case .emotions: return "face.smiling.inverse"
         case .timeline: return "clock.arrow.circlepath"
+        }
+    }
+
+    var accessibilityHint: String {
+        switch self {
+        case .emotions: return "按表情查看归档"
+        case .timeline: return "按时间查看归档"
         }
     }
 }
 
-/// 导航目的地。两个归档共用一条 `NavigationStack` 路径。
+/// 导航目的地。
 enum RootRoute: Hashable {
     case emotion(Emotion)
     case memory(Memory)
@@ -36,13 +43,13 @@ enum RootRoute: Hashable {
 /// 应用根界面。
 ///
 /// 布局对应需求：
-/// - 导航栏**左侧**：按表情归档
-/// - 导航栏**右侧**：按时间归档
-/// - 底部中间：大圆拍照键（沿用原先 tabview 那种中间悬浮键的观感）
+/// - 底部 tab 栏**左侧**：按表情归档
+/// - 底部 tab 栏**右侧**：按时间归档
+/// - 底部**中间**：大圆拍照键，悬浮在 tab 栏之上
 ///
-/// 重构前这里是个 `TabView`，为了做出"中间按钮"的视觉效果硬塞了一个
-/// 空 `Text("")` 当第二页、再靠 `onChange` 把选中项弹回去 —— 既拿不到真正的
-/// 无 Tab 布局，也让导航栏里同时存在标题和齿轮两套东西。
+/// 重构前这里是个三页 `TabView`，中间那页塞了个空 `Text("")`、再靠 `onChange`
+/// 把选中项弹回去，只为做出"中间悬浮按钮"的视觉效果。现在 tab 数量与"两个归档"
+/// 一致，不需要假的中间页。
 struct RootView: View {
 
     @Environment(MemoryStore.self) private var store
@@ -71,35 +78,16 @@ struct RootView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            NavigationStack(path: $path) {
-                content
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            sectionButton(.emotions)
-                        }
-                        ToolbarItem(placement: .principal) {
-                            Text(AppInfo.name)
-                                .appText(20, weight: .bold)
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            sectionButton(.timeline)
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            settingsButton
-                        }
-                    }
-                    .navigationDestination(for: RootRoute.self) { route in
-                        switch route {
-                        case .emotion(let emotion):
-                            EmotionListView(emotion: emotion) { memory in
-                                path.append(.memory(memory))
-                            }
-                        case .memory(let memory):
-                            MemoryDetailView(memory: memory)
-                        }
-                    }
+            TabView(selection: $section) {
+                Tab(RootSection.emotions.title, systemImage: RootSection.emotions.symbol, value: .emotions) {
+                    browser
+                }
+                Tab(RootSection.timeline.title, systemImage: RootSection.timeline.symbol, value: .timeline) {
+                    browser
+                }
             }
+            // 点击 tab 当前项时回到列表根，而不是什么都不做。
+            .onChange(of: section) { _, _ in path.removeAll() }
 
             shutter
         }
@@ -161,6 +149,39 @@ struct RootView: View {
 
     // MARK: - 内容
 
+    /// 一个归档页 —— 自带导航栈与标题栏。
+    ///
+    /// 每个 tab 各建一个 `NavigationStack`：这样两个归档各自维护自己的导航位置，
+    /// 来回切 tab 时不会丢掉对方进到哪一层（用一条共享 path 的话，
+    /// 在表情归档里点进某个表情，切到时间归档会对不上）。
+    ///
+    /// 注意 `.toolbar` / `.navigationDestination` 是挂在**外层**的。
+    /// 第一版把它们挂在 `content`（一个按 tab 分支的 `switch`）上，
+    /// 结果切到时间归档时导航栏和 tab 栏整个消失 —— 那是另一棵视图树，
+    /// 修饰符不会跟过去。
+    private var browser: some View {
+        NavigationStack(path: $path) {
+            content
+                .navigationTitle(AppInfo.name)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        settingsButton
+                    }
+                }
+                .navigationDestination(for: RootRoute.self) { route in
+                    switch route {
+                    case .emotion(let emotion):
+                        EmotionListView(emotion: emotion) { memory in
+                            path.append(.memory(memory))
+                        }
+                    case .memory(let memory):
+                        MemoryDetailView(memory: memory)
+                    }
+                }
+        }
+    }
+
     @ViewBuilder
     private var content: some View {
         switch section {
@@ -175,32 +196,7 @@ struct RootView: View {
         }
     }
 
-    // MARK: - 导航栏按钮
-
-    /// 归档维度切换按钮。
-    ///
-    /// 只放图标不放文字：导航栏里挤了三个控件，带文字的版本在窄屏上会被截断
-    /// （实测 iPhone 17 Pro 上「Emotions」已经显示不下）。语义交给无障碍标签。
-    private func sectionButton(_ target: RootSection) -> some View {
-        Button {
-            guard section != target else { return }
-            section = target
-            // 切归档时回到列表根，否则会停在上一个归档的详情页上。
-            path.removeAll()
-        } label: {
-            Image(systemName: target.symbol)
-                .imageScale(.large)
-                .fontWeight(section == target ? .bold : .regular)
-                .symbolVariant(section == target ? .fill : .none)
-                .foregroundStyle(section == target ? Color.primary : Color.secondary)
-                .contentShape(Rectangle())
-                .frame(minWidth: 32, minHeight: 32)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(target.title)
-        .accessibilityHint(target == .emotions ? "按表情查看归档" : "按时间查看归档")
-        .accessibilityAddTraits(section == target ? [.isSelected] : [])
-    }
+    // MARK: - 导航栏
 
     private var settingsButton: some View {
         Button {
@@ -216,11 +212,14 @@ struct RootView: View {
 
     // MARK: - 快门
 
+    /// 底部中间的大圆拍照键，悬浮在 tab 栏上方。
+    ///
+    /// ZStack 里的底部对齐会被安全区顶到 tab 栏之上，再加一点间距就是最终位置。
     private var shutter: some View {
         ShutterButton(isBusy: capture.phase.isBusy) {
             Task { await capture.startCapture() }
         }
-        .padding(.bottom, 12)
+        .padding(.bottom, 8)
     }
 }
 

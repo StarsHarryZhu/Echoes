@@ -2,8 +2,9 @@
 
 拍下此刻的表情，按表情或按时间回看。
 
-前置相机拍照 → 检测人脸 → 识别表情 → 归档。导航栏左侧按表情归档，右侧按时间归档，
-底部中间一个大圆拍照键。
+前置相机拍照 → 检测人脸 → 识别表情 → 归档。
+
+底部 tab 栏左侧按表情归档、右侧按时间归档，中间悬浮一个大圆拍照键。
 
 ## 环境要求
 
@@ -48,8 +49,8 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
   -uiSeedSampleData -uiStartSection timeline
 ```
 
-- `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本周/本月/更早
-- `-uiStartSection emotions|timeline`：直接打开指定的归档页
+- `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本月/更早
+- `-uiStartSection emotions|timeline`：直接打开指定的归档 tab
 
 这两个参数只在 DEBUG 编译里存在。
 

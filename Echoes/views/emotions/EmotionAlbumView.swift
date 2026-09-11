@@ -28,8 +28,8 @@ struct EmotionAlbumView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        // 底部中间是悬浮快门键，列表末尾给它留出空间。
-        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 92) }
+        // tab 栏已经占掉底部空间；再留一点给悬浮的快门键压住最后一行。
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
     }
 
     private var grid: some View {
