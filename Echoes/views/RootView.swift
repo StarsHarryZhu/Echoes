@@ -72,8 +72,11 @@ struct RootView: View {
     let capture: CaptureCoordinator
 
     @State private var section: RootSection = Self.initialSection
-    /// 最近一次选中的**可浏览**归档。点相机 tab 时用它把选中状态弹回来。
+    /// 最近一次选中的可浏览归档。点相机时 `section` 不变，靠它决定渲染哪个归档。
     @State private var lastBrowsingSection: RootSection = Self.initialSection
+    /// 每次点「拍照」递增。tab 栏只改数字，`RootView` 监听它触发拍照 ——
+    /// 这样 tab 栏保持纯粹的数据驱动，不持有业务闭包。
+    @State private var captureRequest = 0
     @State private var path: [RootRoute] = []
     @State private var isShowingSettings = Self.opensSettingsAtLaunch
 
@@ -87,7 +90,9 @@ struct RootView: View {
         let arguments = ProcessInfo.processInfo.arguments
         if let index = arguments.firstIndex(of: "-uiStartSection"),
            arguments.index(after: index) < arguments.endIndex,
-           let requested = RootSection(rawValue: arguments[arguments.index(after: index)]) {
+           let requested = RootSection(rawValue: arguments[arguments.index(after: index)]),
+           // `.capture` 不是页面，不能作为起始归档。
+           requested.isBrowsing {
             return requested
         }
         #endif
@@ -104,51 +109,68 @@ struct RootView: View {
     }
 
     var body: some View {
-        TabView(selection: $section) {
-            Tab(RootSection.emotions.title, systemImage: RootSection.emotions.symbol, value: .emotions) {
-                browser
+        // 用 `safeAreaInset` 挂底栏，而不是 ZStack 叠上去：
+        // 这样内容区会自动避开底栏高度，列表不会滚到栏下面去。
+        browserContent
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                AppTabBar(selection: $section, captureRequest: $captureRequest)
             }
-            Tab(RootSection.capture.title, systemImage: RootSection.capture.symbol, value: .capture) {
-                browser
+            .onChange(of: section) { _, new in
+                lastBrowsingSection = new
+                // 切归档时回到列表根，而不是停在上一个归档的详情页上。
+                path.removeAll()
             }
-            Tab(RootSection.timeline.title, systemImage: RootSection.timeline.symbol, value: .timeline) {
-                browser
-            }
-        }
-        // 别让 tab 栏在滚动时收起 —— 收起会打乱三项的固定位置。
-        .tabBarMinimizeBehavior(.never)
-        // 切 tab 时回到列表根，而不是停在上一个 tab 的详情页上。
-        .onChange(of: section) { _, new in
-            if new == .capture {
-                // 相机 tab 不是页面：弹相机，并把 tab 状态留在原来那个归档上。
-                // 两次 `$section` 赋值触发的 onChange 都会被 `old == .capture` 拦住。
-                section = lastBrowsingSection
+            // 「拍照」是个动作，不是页面：点它弹相机，拍完留在原归档。
+            .onChange(of: captureRequest) { _, _ in
                 Task { await capture.startCapture() }
-                return
             }
-            lastBrowsingSection = new
-            // 切归档时回到列表根，而不是停在上一个归档的详情页上。
-            path.removeAll()
-        }
-        .fullScreenCover(isPresented: $isShowingSettings) {
-            NavigationStack { SettingsView() }
-        }
-        .sheet(isPresented: isReviewing) {
-            if case .reviewing(let report) = capture.phase, let image = capture.pendingImage {
-                CaptureReviewView(image: image, report: report)
-                    .environment(capture)
-                    .environment(store)
+            .fullScreenCover(isPresented: $isShowingSettings) {
+                NavigationStack { SettingsView() }
             }
-        }
-        .alert(
-            L10n.somethingWentWrong,
-            isPresented: isShowingFailure,
-            presenting: failureMessage
-        ) { _ in
-            Button(L10n.ok, role: .cancel) { capture.clearFailure() }
-        } message: { message in
-            Text(message)
-        }
+            .alert(
+                L10n.somethingWentWrong,
+                isPresented: isShowingFailure,
+                presenting: failureMessage
+            ) { _ in
+                Button(L10n.ok, role: .cancel) { capture.clearFailure() }
+            } message: { message in
+                Text(message)
+            }
+            .sheet(isPresented: isReviewing) {
+                if case .reviewing(let report) = capture.phase, let image = capture.pendingImage {
+                    CaptureReviewView(image: image, report: report)
+                        .environment(capture)
+                        .environment(store)
+                }
+            }
+    }
+
+    /// 当前归档页及其导航栈。
+    ///
+    /// 用 `browsingSection` 而不是 `section`：点相机时 `section` 会短暂变成
+    /// `.capture`，那时仍要继续渲染上一个归档，不能闪一下空白。
+    private var browserContent: some View {
+        NavigationStack(path: $path) {
+                content
+                    .navigationTitle(L10n.appName)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            settingsButton
+                        }
+                    }
+                    .navigationDestination(for: RootRoute.self) { route in
+                        switch route {
+                        case .emotion(let emotion):
+                            EmotionListView(emotion: emotion) { memory in
+                                path.append(.memory(memory))
+                            }
+                        case .memory(let memory):
+                            MemoryDetailView(memory: memory)
+                        }
+                    }
+            }
+            .id(browsingSection)
     }
 
     // MARK: - 弹窗绑定
@@ -187,39 +209,6 @@ struct RootView: View {
     }
 
     // MARK: - 内容
-
-    /// 一个归档页 —— 自带导航栈与标题栏。
-    ///
-    /// 每个 tab 各建一个 `NavigationStack`：这样两个归档各自维护自己的导航位置，
-    /// 来回切 tab 时不会丢掉对方进到哪一层（用一条共享 path 的话，
-    /// 在表情归档里点进某个表情，切到时间归档会对不上）。
-    ///
-    /// 注意 `.toolbar` / `.navigationDestination` 是挂在**外层**的。
-    /// 第一版把它们挂在 `content`（一个按 tab 分支的 `switch`）上，
-    /// 结果切到时间归档时导航栏和 tab 栏整个消失 —— 那是另一棵视图树，
-    /// 修饰符不会跟过去。
-    private var browser: some View {
-        NavigationStack(path: $path) {
-            content
-                .navigationTitle(AppInfo.name)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        settingsButton
-                    }
-                }
-                .navigationDestination(for: RootRoute.self) { route in
-                    switch route {
-                    case .emotion(let emotion):
-                        EmotionListView(emotion: emotion) { memory in
-                            path.append(.memory(memory))
-                        }
-                    case .memory(let memory):
-                        MemoryDetailView(memory: memory)
-                    }
-                }
-        }
-    }
 
     /// 当前应该渲染哪个归档。
     ///
