@@ -46,7 +46,6 @@ struct EchoesApp: App {
                     // 是为了不阻塞首帧渲染。
                     await store.bootstrap()
                     #if DEBUG
-                    await Self.seedSampleDataIfRequested(store: store)
                     await Self.runCaptureIfRequested(capture: capture)
                     #endif
                 }
@@ -65,69 +64,6 @@ struct EchoesApp: App {
         await capture.startCapture()
     }
 
-    /// 用启动参数预置几条示例记录，便于在模拟器上验证归档界面。
-    ///
-    ///     xcrun simctl launch <device> com.Echoesone.Echoes -uiSeedSampleData
-    ///
-    /// 用**程序生成的占位图**，不依赖包内任何照片资源 —— 采样图已经从 app 包里
-    /// 移走了（它们是测试夹具，不该随应用分发）。
-    private static func seedSampleDataIfRequested(store: MemoryStore) async {
-        guard ProcessInfo.processInfo.arguments.contains("-uiSeedSampleData") else { return }
-        guard store.memories.isEmpty else { return }
-
-        // 时间刻意跨越"今天 / 昨天 / 本月 / 更早"，好验证时间归档的分组。
-        let emotions: [Emotion] = [.happy, .neutral, .surprise, .sad, .angry]
-        let hoursAgo: [Int] = [1, 30, 6 * 24, 20 * 24, 130 * 24]
-
-        for (index, emotion) in emotions.enumerated() {
-            guard let image = placeholderImage(for: emotion) else { continue }
-            let report = EmotionReport(
-                emotion: emotion,
-                confidence: 0.75,
-                rankedScores: Emotion.allCases
-                    .map { candidate in
-                        EmotionReport.Score(
-                            emotion: candidate,
-                            confidence: candidate == emotion ? 0.75 : 0.25 / 6
-                        )
-                    }
-                    .sorted { $0.confidence > $1.confidence },
-                faceBox: CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
-            )
-
-            let capturedAt = Calendar.current.date(
-                byAdding: .hour,
-                value: -(hoursAgo[index % hoursAgo.count]),
-                to: Date()
-            ) ?? Date()
-            _ = try? await store.add(image: image, report: report, capturedAt: capturedAt)
-        }
-    }
-
-    /// 生成一张带表情名的占位图。
-    private static func placeholderImage(for emotion: Emotion) -> UIImage? {
-        let size = CGSize(width: 600, height: 600)
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = 1
-        format.opaque = true
-
-        return UIGraphicsImageRenderer(size: size, format: format).image { context in
-            UIColor(emotion.tint).setFill()
-            context.fill(CGRect(origin: .zero, size: size))
-
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 72, weight: .semibold),
-                .foregroundColor: UIColor.white,
-            ]
-            let text = emotion.displayName as NSString
-            let textSize = text.size(withAttributes: attributes)
-            let origin = CGPoint(
-                x: (size.width - textSize.width) / 2,
-                y: (size.height - textSize.height) / 2
-            )
-            text.draw(at: origin, withAttributes: attributes)
-        }
-    }
     #endif
 
     /// 导航栏与标签栏统一用应用的 SmileySans 字体。

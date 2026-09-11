@@ -42,19 +42,20 @@ xcrun simctl create "iPhone 17 Pro" \
 
 ### 在模拟器上检查界面
 
-模拟器没有相机，会自动改用包内采样图跑通整条识别管线。DEBUG 下有两个启动参数
-可以在不点屏幕的情况下（`simctl` 无法模拟点击）检查两个归档页：
+模拟器没有相机，所以**拍照流程走不通**（点相机键会弹「找不到前置相机」）。
+DEBUG 下有几个启动参数，可以在不点屏幕的情况下（`simctl` 无法模拟点击）检查界面：
 
 ```bash
-xcrun simctl launch <device> com.Echoesone.Echoes \
-  -uiSeedSampleData -uiStartSection timeline
+xcrun simctl launch <device> com.Echoesone.Echoes -uiStartSection timeline
 ```
 
-- `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本月/更早
 - `-uiStartSection emotions|timeline`：直接打开指定的归档 tab
 - `-uiShowSettings`：直接打开设置页
 - `-uiCaptureOnce`：启动后自动走一次拍照流程。模拟器没有相机，
   这条参数正好用来验证「相机不可用 → 弹窗提示」这条错误路径
+
+**没有"灌测试数据"的参数** —— 归档只会由真实的拍照流程写入。
+在没有相机的环境里（模拟器），归档就保持空状态，这是预期行为。
 
 这些参数只在 DEBUG 编译里存在。
 
