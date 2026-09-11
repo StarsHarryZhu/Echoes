@@ -31,7 +31,6 @@ struct EmotionListView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
         .navigationTitle(emotion.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

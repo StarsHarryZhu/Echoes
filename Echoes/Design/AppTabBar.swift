@@ -30,11 +30,40 @@ struct AppTabBar: View {
     @Binding var captureRequest: Int
 
     /// 三个格子等宽，圆钮正好落在中间那格里。
-    private let sideColumnWidth: CGFloat = 96
     private let shutterDiameter: CGFloat = 60
     private let barHeight: CGFloat = 62
 
     var body: some View {
+        // 结构上刻意保持简单：底栏本身留在布局流里，**只让底衬往下延伸**。
+        //
+        // 之前用 GeometryReader + `ignoresSafeArea` 让整条栏也下沉，结果栏被推到
+        // 屏幕边缘之外、图标文字都被切掉。根本原因是不该让"栏"离开布局流 ——
+        // 需要盖住 home indicator 的只是它背后的那层底色。
+        bar
+            .padding(.horizontal, 12)
+            .padding(.bottom, 6)
+            .background(alignment: .bottom) { backdrop }
+    }
+
+    /// 栏后面的底衬：下半段与页面同色（不透明），向上渐隐到透明，
+    /// 让内容从栏后干净地淡出，同时盖住栏下方的安全区。
+    private var backdrop: some View {
+        LinearGradient(
+            stops: [
+                .init(color: Color(.systemGroupedBackground).opacity(0), location: 0),
+                .init(color: Color(.systemGroupedBackground), location: 0.35),
+                .init(color: Color(.systemGroupedBackground), location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: barHeight + 44)
+        // 往下伸出布局边界，铺满 home indicator 那条安全区。
+        .ignoresSafeArea(edges: .bottom)
+        .allowsHitTesting(false)
+    }
+
+    private var bar: some View {
         HStack(spacing: 0) {
             tabButton(.emotions)
                 .frame(maxWidth: .infinity)
@@ -49,10 +78,11 @@ struct AppTabBar: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 8)
         // 整条底栏做成一片玻璃 —— 圆钮自己是另一片，两片叠出层次。
-        .glassEffect(.regular, in: Capsule(style: .continuous))
-        .padding(.horizontal, 12)
-        // 底部安全区（home indicator）自己让开：系统 TabView 走了之后没人管了。
-        .padding(.bottom, 4)
+        .background(
+            Capsule(style: .continuous)
+                .fill(.ultraThinMaterial)
+                .glassEffect(.regular, in: Capsule(style: .continuous))
+        )
     }
 
     // MARK: - 两侧的归档 tab

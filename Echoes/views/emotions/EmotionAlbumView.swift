@@ -28,8 +28,6 @@ struct EmotionAlbumView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        // tab 栏已经占掉底部空间；再留一点给悬浮的快门键压住最后一行。
-        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
     }
 
     private var grid: some View {

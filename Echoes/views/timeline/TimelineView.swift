@@ -39,7 +39,6 @@ struct TimelineView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 24) }
         .confirmationDialog(
             L10n.timelineDeleteConfirmTitle,
             isPresented: Binding(
