@@ -159,6 +159,10 @@ nonisolated enum L10n {
         string("review.degraded.fallback", "We couldn’t locate a face, so this was judged from the whole photo.")
     }
 
+    static var reviewSamplePhoto: String {
+        string("review.samplePhoto", "No front camera in this environment — this is a bundled sample photo, not a real capture.")
+    }
+
     // MARK: - Startup / store errors
 
     static var startupFailedTitle: String { string("startup.failed.title", "Couldn’t load your archive") }

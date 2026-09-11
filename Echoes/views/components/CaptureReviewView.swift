@@ -27,6 +27,12 @@ struct CaptureReviewView: View {
                     EmotionScoreBars(scores: report.rankedScores, highlight: report.emotion)
                         .padding(.horizontal)
 
+                    if capture.pendingSource.isSample {
+                        // 没有前置相机时会退回包内示例图。必须说清楚，
+                        // 否则用户分不清"拍到了"还是"环境不支持、给的示例图"。
+                        samplePhotoNotice
+                    }
+
                     if let reason = report.degradedReason {
                         degradedNotice(reason)
                     } else if report.isLowConfidence {
@@ -125,6 +131,21 @@ struct CaptureReviewView: View {
                     .appText(12)
                     .foregroundStyle(.secondary)
             }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal)
+    }
+
+    /// 示例图提示（当前环境没有前置相机）。
+    private var samplePhotoNotice: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.orange)
+            Text(L10n.reviewSamplePhoto)
+                .appText(13)
+                .foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }
         .padding(12)

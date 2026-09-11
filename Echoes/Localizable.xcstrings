@@ -1390,6 +1390,40 @@
         }
       }
     },
+    "review.samplePhoto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No front camera in this environment — this is a bundled sample photo, not a real capture."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前环境没有前置相机，这是一张内置示例图，不是真实拍摄的照片。"
+          }
+        }
+      }
+    },
+    "review.samplePhoto.short": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sample photo (no camera)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "示例图（无相机）"
+          }
+        }
+      }
+    },
     "review.title": {
       "extractionState": "manual",
       "localizations": {

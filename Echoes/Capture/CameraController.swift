@@ -13,13 +13,13 @@ import UIKit
 protocol CameraCapturing {
     /// 弹前置相机拍照。
     ///
-    /// - Returns: 拍到的照片，以及该照片像素数据对应的方向。
+    /// - Returns: 拍到的照片、像素数据对应的方向、以及照片来源。
     /// - Throws: `CameraError`。用户主动取消抛 `.cancelled`。
-    func captureFrontPhoto() async throws -> (image: UIImage, orientation: CGImagePropertyOrientation)
+    func captureFrontPhoto() async throws -> CapturedPhoto
 }
 
 /// 拍照过程中的失败原因。
-enum CameraError: LocalizedError {
+enum CameraError: LocalizedError, Equatable {
     case unavailable
     case frontCameraUnavailable
     case noPresentingViewController
@@ -48,6 +48,28 @@ enum CameraError: LocalizedError {
     }
 }
 
+// MARK: - 照片来源
+
+/// 这张照片是怎么来的。
+///
+/// 加这个标记是因为：在当前环境没有前置相机时会退回包内采样图，
+/// 如果界面不说明，用户（和开发者）都没法分辨"拍到了"还是"兜底给的"。
+nonisolated enum CaptureSource: Equatable, Sendable {
+    /// 系统相机真实拍摄。
+    case camera
+    /// 环境没有前置相机，用包内采样图代替。
+    case sample
+
+    var isSample: Bool { self == .sample }
+}
+
+/// 拍到的照片及其来源。
+nonisolated struct CapturedPhoto: Sendable {
+    let image: UIImage
+    let orientation: CGImagePropertyOrientation
+    let source: CaptureSource
+}
+
 /// 基于 `UIImagePickerController` 的前置相机实现。
 ///
 /// 重构前是 `camera_control`：`capture()` 里 new 一个实例、存在局部变量里就 await，
@@ -56,10 +78,10 @@ enum CameraError: LocalizedError {
 @MainActor
 final class UIImagePickerCamera: NSObject, CameraCapturing, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
-    private var continuation: CheckedContinuation<(image: UIImage, orientation: CGImagePropertyOrientation), any Error>?
+    private var continuation: CheckedContinuation<CapturedPhoto, any Error>?
     private var isAwaitingResult = false
 
-    func captureFrontPhoto() async throws -> (image: UIImage, orientation: CGImagePropertyOrientation) {
+    func captureFrontPhoto() async throws -> CapturedPhoto {
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
             throw CameraError.unavailable
         }
@@ -101,7 +123,7 @@ final class UIImagePickerCamera: NSObject, CameraCapturing, UIImagePickerControl
         // 前置相机拍出的图带 `imageOrientation`，像素数据本身没转正。
         // Vision 需要这个方向才能在正确的坐标系里找人脸。
         let orientation = CGImagePropertyOrientation(image.imageOrientation)
-        finish(with: .success((image, orientation)))
+        finish(with: .success(CapturedPhoto(image: image, orientation: orientation, source: .camera)))
         picker.dismiss(animated: true)
     }
 
@@ -114,9 +136,7 @@ final class UIImagePickerCamera: NSObject, CameraCapturing, UIImagePickerControl
 
     /// 只允许 resume 一次。系统在极端情况下（快速取消 + 完成）可能回调两次，
     /// 重复 resume 会直接终止进程。
-    private func finish(
-        with result: Result<(image: UIImage, orientation: CGImagePropertyOrientation), any Error>
-    ) {
+    private func finish(with result: Result<CapturedPhoto, any Error>) {
         guard isAwaitingResult, let continuation else { return }
         isAwaitingResult = false
         self.continuation = nil
@@ -143,31 +163,33 @@ final class UIImagePickerCamera: NSObject, CameraCapturing, UIImagePickerControl
     }
 }
 
-#if targetEnvironment(simulator)
-
-/// 模拟器没有相机，`UIImagePickerController.isSourceTypeAvailable(.camera)` 恒为 false，
-/// 也就永远走不到人脸识别那段代码。这里用包内采样图顶上，
-/// 让整条「拍照 → 识别 → 归档」链路在模拟器上也能跑通、被测到。
+/// 没有可用相机时用包内采样图顶上，让整条「拍照 → 识别 → 归档」链路
+/// 在无相机的环境里也能跑通、被测到。
+///
+/// 是否启用由 `CaptureCoordinator.makeDefault` 按**运行时能力**决定，不是编译期开关 ——
+/// 实测 iOS 27 的模拟器上 `UIImagePickerController.isSourceTypeAvailable(.camera)`
+/// 会返回 `true`（尽管并没有摄像头硬件），所以"模拟器一定没有相机"这个假设不成立。
+///
+/// 注意这不是"静默兜底"：真机上相机不可用时 `UIImagePickerCamera` 会抛
+/// `CameraError.unavailable` 并提示用户，不会悄悄换成一张图。
 @MainActor
 final class SimulatedCamera: CameraCapturing {
 
     /// 每次取一张不同的采样图，方便观察不同表情的结果。
     private var nextIndex = 0
 
-    func captureFrontPhoto() async throws -> (image: UIImage, orientation: CGImagePropertyOrientation) {
+    func captureFrontPhoto() async throws -> CapturedPhoto {
         let names = AppInfo.SampleImage.names
         for offset in 0..<names.count {
             let name = names[(nextIndex + offset) % names.count]
             if let image = UIImage(named: name) {
                 nextIndex = (nextIndex + offset + 1) % names.count
-                return (image, .up)
+                return CapturedPhoto(image: image, orientation: .up, source: .sample)
             }
         }
         guard let fallback = UIImage(named: AppInfo.SampleImage.fallback) else {
             throw CameraError.unavailable
         }
-        return (fallback, .up)
+        return CapturedPhoto(image: fallback, orientation: .up, source: .sample)
     }
 }
-
-#endif

@@ -59,10 +59,13 @@ final class CaptureCoordinator {
     private(set) var lastSaved: Memory?
     /// 预览页是否已经点了「保存」。界面用它区分"被用户关掉"和"正在保存"。
     private(set) var hasCommittedReview = false
+    /// 待确认照片的来源。界面据此说明"这是示例图，不是真拍的"。
+    private(set) var pendingSource: CaptureSource = .camera
 
     // MARK: 依赖
 
-    private let camera: any CameraCapturing
+    /// 测试会读它来确认注入了哪个实现。
+    let camera: any CameraCapturing
     private let analyzer: EmotionAnalyzer
     private let store: MemoryStore
 
@@ -76,13 +79,27 @@ final class CaptureCoordinator {
         self.store = store
     }
 
-    /// 生产环境的组合：真机用系统相机，模拟器用采样图。
+    /// 生产环境的组合：有前置相机就用系统相机，否则用包内采样图。
+    ///
+    /// 判据是**运行时能力**，而不是 `#if targetEnvironment(simulator)`。
+    /// 实测 iOS 27 的模拟器上：
+    /// - `isSourceTypeAvailable(.camera)` → `true`
+    /// - `isCameraDeviceAvailable(.front)` → `false`
+    ///
+    /// 也就是说"camera 源可用"并不代表"有能用的相机"，更不代表"有前置相机"。
+    /// 之前用 `#if targetEnvironment(simulator)` 反而歪打正着地绕开了这个坑；
+    /// 换成只判断 camera 源之后，模拟器会被误判成"有相机"、走真机路径、
+    /// 最后拿不到照片。
+    ///
+    /// Echoes 必须用前置相机，所以判据是 `isCameraDeviceAvailable(.front)`。
     static func makeDefault(store: MemoryStore) -> CaptureCoordinator {
-        #if targetEnvironment(simulator)
-        return CaptureCoordinator(camera: SimulatedCamera(), store: store)
-        #else
-        return CaptureCoordinator(camera: UIImagePickerCamera(), store: store)
-        #endif
+        let camera: any CameraCapturing = Self.hasFrontCamera ? UIImagePickerCamera() : SimulatedCamera()
+        return CaptureCoordinator(camera: camera, store: store)
+    }
+
+    /// 当前环境是否有可用的**前置**相机。
+    static var hasFrontCamera: Bool {
+        UIImagePickerController.isCameraDeviceAvailable(.front)
     }
 
     // MARK: - 流程
@@ -93,10 +110,11 @@ final class CaptureCoordinator {
 
         // 上一次的预览图先清掉，避免识别过程中界面上还挂着上一张。
         pendingImage = nil
+        pendingSource = .camera
         hasCommittedReview = false
         phase = .capturing
 
-        let captured: (image: UIImage, orientation: CGImagePropertyOrientation)
+        let captured: CapturedPhoto
         do {
             captured = try await camera.captureFrontPhoto()
         } catch let error as CameraError where error.isCancellation {
@@ -115,6 +133,7 @@ final class CaptureCoordinator {
                 orientation: captured.orientation
             )
             pendingImage = captured.image
+            pendingSource = captured.source
             phase = .reviewing(report)
         } catch {
             phase = .failed(error.localizedDescription)

@@ -47,12 +47,24 @@ struct EchoesApp: App {
                     await store.bootstrap()
                     #if DEBUG
                     await Self.seedSampleDataIfRequested(store: store)
+                    await Self.runCaptureIfRequested(capture: capture)
                     #endif
                 }
         }
     }
 
     #if DEBUG
+    /// `-uiCaptureOnce` 启动后自动走一次拍照流程，效果等同于点一下相机键。
+    ///
+    /// `simctl` 没法模拟点击，这是在没有 UI 测试的情况下验证
+    /// 「拍照 → 识别 → 预览」这条链路的唯一办法。
+    private static func runCaptureIfRequested(capture: CaptureCoordinator) async {
+        guard ProcessInfo.processInfo.arguments.contains("-uiCaptureOnce") else { return }
+        // 稍等一下，让根视图先完成布局，否则预览页可能来不及呈现。
+        try? await Task.sleep(for: .milliseconds(600))
+        await capture.startCapture()
+    }
+
     /// 用启动参数预置几条示例记录，便于在模拟器（没有相机）上验证归档界面。
     ///
     ///     xcrun simctl launch <device> com.Echoesone.Echoes -uiSeedSampleData

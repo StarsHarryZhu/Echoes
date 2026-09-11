@@ -53,6 +53,7 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
 - `-uiSeedSampleData`：灌入 5 条示例记录，时间跨越今天/昨天/本月/更早
 - `-uiStartSection emotions|timeline`：直接打开指定的归档 tab
 - `-uiShowSettings`：直接打开设置页
+- `-uiCaptureOnce`：启动后自动走一次拍照流程（等同点一下相机键）
 
 这些参数只在 DEBUG 编译里存在。
 
@@ -75,6 +76,23 @@ xcrun simctl launch <device> com.Echoesone.Echoes \
 
 新增语言只需：加一个 `<lang>.lproj` / 在 `Localizable.xcstrings` 里补一列，
 再把语言加进 `AppLanguage`。
+
+## 相机的行为
+
+Echoes 需要**前置**相机。是否用系统相机由运行时能力决定
+（`UIImagePickerController.isCameraDeviceAvailable(.front)`），
+而不是 `#if targetEnvironment(simulator)`：
+
+| 环境 | `isSourceTypeAvailable(.camera)` | `isCameraDeviceAvailable(.front)` | 行为 |
+|---|---|---|---|
+| 真机 | true | true | 弹系统前置相机 |
+| 模拟器（实测） | **true** | **false** | 用包内示例图兜底 |
+
+注意第一列和第二列**可以不一致** —— iOS 27 的模拟器上 camera 源报告可用，
+但并没有任何摄像头设备。所以不能拿 `.camera` 源可用当"有相机"用。
+
+用示例图兜底时，预览页会明确标注「当前环境没有前置相机，这是一张内置示例图」，
+不会让人误以为真的拍到了。
 
 ## 目录结构
 
